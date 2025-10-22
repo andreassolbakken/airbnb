@@ -10,7 +10,7 @@
     --ink:#0f1420; --muted:#6f7681;
     --glass:rgba(255,255,255,.78); --glass-bd:rgba(255,255,255,.38);
     --champ:#d9be8a;
-    --ring:0 0 0 3px rgba(94,155,231,.35);
+    --ring-blue:0 0 0 6px rgba(94,155,231,.28);
     --shadow:0 18px 48px rgba(20,24,32,.16);
     --blue1:#8db5e8; --blue2:#9cc0ec; --blue3:#e9f2ff;
   }
@@ -20,9 +20,9 @@
     font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
     color:var(--ink);
     background:linear-gradient(180deg,var(--blue1) 0%, var(--blue2) 22%, var(--blue3) 54%, #ffffff 100%);
-    overflow:visible; /* no internal scrollbars */
   }
-  .wrap{max-width:1100px;margin:14px auto;padding:0 10px}
+  /* keep full page as a single canvas; no internal scroll panes */
+  .wrap{max-width:1100px;margin:14px auto;padding:0 10px; min-height:2000px;}
   .panel{
     background:var(--glass);
     border:1px solid var(--glass-bd);
@@ -56,8 +56,8 @@
   .chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
   @media(max-width:900px){.chips{grid-template-columns:repeat(3,1fr)}}
   .chip{position:relative;text-align:center;font-weight:800;padding:9px 6px;border-radius:10px;background:#fbfaf8;border:1px solid #e9e2d6;cursor:pointer;transition:.15s}
-  .chip:hover{box-shadow:var(--ring)}
-  .chip.active{background:#fff7e6;border-color:#e3d2ae;box-shadow:0 0 0 6px rgba(217,190,138,.28)}
+  .chip:hover{box-shadow:0 0 0 3px rgba(94,155,231,.22)}
+  .chip.active{background:#fff7e6;border-color:#e3d2ae;box-shadow:var(--ring-blue)}
   .chip .badge{position:absolute;top:5px;right:5px;background:#121418;color:#fff;font-size:10px;border-radius:999px;padding:1px 6px;display:none}
   .chip.active .badge{display:inline-block}
   .custom-row{display:flex;gap:6px;margin-top:6px}
@@ -68,7 +68,7 @@
   @media(max-width:900px){.products{grid-template-columns:repeat(2,1fr)}}
   .p{background:#fff;border:1px solid #eee3cf;border-radius:12px;overflow:hidden;transition:.2s;display:flex;flex-direction:column;min-height:340px}
   .p:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.10)}
-  .p.added{box-shadow:0 0 0 6px rgba(94,155,231,.28), 0 8px 20px rgba(0,0,0,.12)}
+  .p.added{box-shadow:var(--ring-blue), 0 8px 20px rgba(0,0,0,.12)}
   .imgWrap{width:100%;height:200px;background:#fff;display:flex;align-items:center;justify-content:center}
   .p img{max-width:100%;max-height:100%;object-fit:contain}
   .meta{padding:8px}
@@ -106,7 +106,7 @@
   .order .total{padding:8px 12px;font-weight:900;border-top:1px solid #efe4cf;display:flex;justify-content:space-between}
   .order .form{padding:10px 12px;display:grid;gap:6px}
 
-  /* Modals & confirmation */
+  /* Learn More Modal (kept) */
   .modal{position:fixed;inset:0;background:rgba(9,14,22,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
   .modal.open{display:flex;animation:fade .18s ease-out}
   @keyframes fade{from{opacity:0}to{opacity:1}}
@@ -115,9 +115,15 @@
   .sheet .bd{padding:12px;overflow:auto}
   .sheet .ft{padding:10px 12px;border-top:1px solid #efe4cf;display:flex;gap:8px;justify-content:flex-end}
 
-  .confirm{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(5,10,20,.35);backdrop-filter:blur(8px);z-index:60}
+  /* Centered translucent confirmation (light/glass) */
+  .confirm{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:60}
   .confirm.show{display:flex}
-  .confirm .box{background:#ffffff; border:1px solid #e8edf7; border-radius:16px; padding:20px; box-shadow:0 22px 60px rgba(0,0,0,.18); text-align:center; max-width:460px}
+  .confirm .box{
+    background:rgba(255,255,255,.85);
+    border:1px solid #e8edf7; border-radius:16px;
+    padding:20px; box-shadow:0 22px 60px rgba(0,0,0,.18);
+    text-align:center; max-width:460px
+  }
   .confirm .box h3{margin:0 0 6px;font-size:18px}
   .confirm .box p{margin:0;color:#5d6a78}
 </style>
@@ -318,36 +324,11 @@
               <input id="arrivalDate" type="date" placeholder="Arrival date">
               <input id="room" type="text" value="Nordic Loft Ålesund" placeholder="Apartment">
               <textarea id="notes" rows="2" placeholder="Delivery timing, allergies, anything else…"></textarea>
-              <button id="openSummary" class="btn primary">Review & Place Order</button>
+              <!-- DIRECT SEND -->
+              <button id="confirmSend" class="btn primary">Confirm & Send</button>
             </div>
           </div>
         </aside>
-      </div>
-    </div>
-  </div>
-
-  <!-- Summary Modal -->
-  <div id="summaryModal" class="modal" aria-hidden="true">
-    <div class="sheet">
-      <div class="hd">Review your order</div>
-      <div class="bd">
-        <div id="summaryList" style="display:grid;gap:8px"></div>
-        <hr style="border:0;border-top:1px solid #eee3cf;margin:10px 0">
-        <div style="display:flex;justify-content:space-between;font-weight:900"><span>Total (priced items)</span><span id="summaryTotal">kr 0</span></div>
-        <div style="margin-top:6px;color:#6f7681">
-          <div><strong>Grocery notes:</strong> <span id="sumShop">—</span></div>
-          <div><strong>Activity notes:</strong> <span id="sumAct">—</span></div>
-        </div>
-        <div style="margin-top:6px;color:#6f7681">
-          <div><strong>Name:</strong> <span id="sumName">—</span></div>
-          <div><strong>Email:</strong> <span id="sumEmail">—</span></div>
-          <div><strong>Phone:</strong> <span id="sumPhone">—</span></div>
-          <div><strong>Arrival:</strong> <span id="sumArrival">—</span></div>
-        </div>
-      </div>
-      <div class="ft">
-        <button id="closeSummary" class="btn">Keep Editing</button>
-        <button id="confirmSend" class="btn gold">Confirm & Send</button>
       </div>
     </div>
   </div>
@@ -361,7 +342,7 @@
     </div>
   </div>
 
-  <!-- Confirmation Overlay -->
+  <!-- Centered Translucent Confirmation -->
   <div id="confirmOverlay" class="confirm" aria-hidden="true">
     <div class="box">
       <h3>✅ Order sent!</h3>
@@ -462,7 +443,7 @@
     if(addBtn){
       const box=addBtn.closest(".act");
       addLine({id:box.dataset.id+"-"+Date.now(),name:box.dataset.name,qty:1,estimate:true});
-      box.style.boxShadow="0 0 0 6px rgba(94,155,231,.28)"; setTimeout(()=>box.style.boxShadow="",900);
+      box.style.boxShadow="var(--ring-blue)"; setTimeout(()=>box.style.boxShadow="",900);
       return;
     }
     const learnBtn=e.target.closest("[data-learn]");
@@ -488,29 +469,7 @@
     }
   });
 
-  /* ------- Summary modal + submit ------- */
-  const summaryModal=document.getElementById("summaryModal");
-  function toggleSummary(open){ summaryModal.classList.toggle("open", !!open); summaryModal.setAttribute("aria-hidden", open? "false":"true"); }
-  document.getElementById("openSummary").addEventListener("click",()=>{
-    const list=document.getElementById("summaryList"); list.innerHTML=""; let total=0;
-    cart.forEach(i=>{
-      const sub=i.estimate? "-" : money(i.qty*(i.unit_price||0));
-      if(!i.estimate) total+=i.qty*(i.unit_price||0);
-      const row=document.createElement("div"); row.style.display="flex"; row.style.justifyContent="space-between";
-      row.innerHTML=`<div><strong>${i.name}</strong><div style="color:#6f7681">x${i.qty}${i.unit_price? " · kr "+i.unit_price:""}</div></div><div style="font-weight:900">${i.estimate? "<span class='est'>Request&nbsp;Quote</span>":sub}</div>`;
-      list.appendChild(row);
-    });
-    document.getElementById("summaryTotal").textContent=money(total);
-    document.getElementById("sumShop").textContent=document.getElementById("shoppingText").value||"—";
-    document.getElementById("sumAct").textContent=document.getElementById("activityText").value||"—";
-    document.getElementById("sumName").textContent=document.getElementById("guestName").value||"—";
-    document.getElementById("sumEmail").textContent=document.getElementById("email").value||"—";
-    document.getElementById("sumPhone").textContent=document.getElementById("phone").value||"—";
-    document.getElementById("sumArrival").textContent=document.getElementById("arrivalDate").value||"—";
-    toggleSummary(true);
-  });
-  document.getElementById("closeSummary").addEventListener("click",()=>toggleSummary(false));
-
+  /* ------- Direct submit + confirmation overlay ------- */
   function openConfirm(){ const c=document.getElementById("confirmOverlay"); c.classList.add("show"); c.setAttribute("aria-hidden","false"); }
   function closeConfirm(){ const c=document.getElementById("confirmOverlay"); c.classList.remove("show"); c.setAttribute("aria-hidden","true"); }
   window.closeConfirm = closeConfirm;
@@ -533,8 +492,7 @@
     try{
       const res = await fetch(webhookURL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
       if(!res.ok) throw new Error("Network");
-      toggleSummary(false);
-      // Reset & show confirmation overlay
+      // Reset state and show confirmation
       cart.clear(); renderCart();
       document.querySelectorAll(".chip.active").forEach(c=>c.classList.remove("active"));
       document.getElementById("shoppingText").value="";
@@ -546,6 +504,7 @@
     }
   });
 
+  // initial render
   renderCart();
 </script>
 </body>
