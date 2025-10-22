@@ -1,348 +1,285 @@
-<!-- Nordic Loft – Concierge Order Component -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-<style>
-  :root{
-    --bg:#0b1226;           /* page bg behind section if you need */
-    --card:#ffffff;
-    --ink:#0e1428;
-    --muted:#5f6b85;
-    --brand:#1d78ff;
-    --ring:#1d78ff33;
-    --border:#e6ecf3;
-    --soft:#f5f7fb;
-    --accent:#f0f4ff;
-    --ok:#0f9d58;
-  }
-
-  .nl-wrap{font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
-  .nl-container{max-width:1100px;margin:28px auto;padding:8px 16px} /* ↓ tighter */
-  @media(min-width:960px){.nl-container{padding:8px 24px}}
-
-  .nl-h1{margin:0 0 8px;font-weight:800;letter-spacing:.2px;font-size:28px}
-  .nl-sub{margin:0 0 8px;color:var(--muted)}
-  .nl-note{margin:10px 0 18px;padding:12px 14px;border-radius:14px;background:#f5f7fb;border:1px solid var(--border);color:var(--ink)}
-
-  /* grid */
-  .nl-grid{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:14px}
-  @media(max-width:1120px){.nl-grid{grid-template-columns:repeat(3,minmax(220px,1fr))}}
-  @media(max-width:820px){.nl-grid{grid-template-columns:repeat(2,minmax(200px,1fr))}}
-  @media(max-width:540px){.nl-grid{grid-template-columns:1fr}}
-
-  /* product card */
-  .nl-card{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:18px;
-    padding:14px; /* tighter */
-    display:flex;flex-direction:column;gap:10px;
-    box-shadow:0 8px 18px rgba(18,38,63,.06);
-  }
-  .nl-title{margin:0;font-weight:800;font-size:16px}
-  .nl-desc{margin:0;color:var(--muted);font-size:13px}
-  .nl-price{font-weight:800}
-  .nl-line{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px}
-
-  /* qty row + add button, fits on one line at desktop */
-  .nl-qtyrow{display:flex;align-items:center;gap:10px;margin-top:6px}
-  .nl-step{display:flex;align-items:center;gap:8px}
-  .nl-btn{width:36px;height:36px;border:1px solid var(--border);background:var(--soft);border-radius:12px;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none}
-  .nl-val{min-width:40px;height:36px;padding:0 10px;border-radius:12px;border:2px solid var(--brand);display:flex;align-items:center;justify-content:center;font-weight:800;background:#f7fbff}
-  .nl-add{margin-left:auto;padding:10px 14px;border-radius:12px;border:0;background:linear-gradient(135deg,#7fb2ff,#1d78ff);color:#fff;font-weight:800;cursor:pointer;box-shadow:0 6px 12px rgba(29,120,255,.22)}
-  .nl-add:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
-
-  /* cart summary / form */
-  .nl-cart{
-    margin-top:22px; /* tighter */
-    background:#fff;border:1px solid var(--border);border-radius:18px;padding:16px;
-    box-shadow:0 8px 18px rgba(18,38,63,.06);
-  }
-  .nl-table{width:100%;border-collapse:collapse;font-size:14px}
-  .nl-table th,.nl-table td{padding:8px 6px;border-bottom:1px dashed var(--border);vertical-align:top}
-  .nl-right{text-align:right}
-  .nl-total{font-weight:800}
-  .nl-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
-  @media(max-width:720px){.nl-form{grid-template-columns:1fr}}
-  .nl-field{display:flex;flex-direction:column;gap:6px}
-  .nl-label{font-size:12px;color:var(--muted)}
-  .nl-input,.nl-textarea{border:1px solid #dbe5ee;border-radius:12px;padding:12px;font:inherit}
-  .nl-textarea{min-height:72px}
-  .nl-submit{margin-top:8px;width:100%;padding:14px;border-radius:14px;border:0;cursor:pointer;font-weight:900;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 10px 18px rgba(34,197,94,.18)}
-  .nl-ok{display:none;margin-top:8px;color:var(--ok);font-weight:700}
-  .nl-err{display:none;margin-top:8px;color:#d92d20;font-weight:700}
-</style>
-
-<section class="nl-wrap" id="nl-order">
-  <div class="nl-container">
-    <h2 class="nl-h1">Concierge add-ons</h2>
-    <p class="nl-sub">Pick extras for your stay. Prices in NOK.</p>
-    <div class="nl-note">Payments are arranged after confirmation.</div>
-
-    <!-- PRODUCT GRID -->
-    <div class="nl-grid" id="nl-grid"></div>
-
-    <!-- CART / SUBMIT -->
-    <div class="nl-cart" id="nl-cart">
-      <h3 class="nl-title" style="margin-bottom:6px">Your selection</h3>
-      <table class="nl-table" id="nl-table">
-        <thead>
-          <tr><th style="width:60%">Item</th><th class="nl-right">Qty</th><th class="nl-right">Unit</th><th class="nl-right">Subtotal</th></tr>
-        </thead>
-        <tbody id="nl-rows">
-          <tr><td colspan="4" style="color:var(--muted);padding:10px 6px">No items yet.</td></tr>
-        </tbody>
-        <tfoot>
-          <tr><td colspan="3" class="nl-right nl-total">Total</td><td class="nl-right nl-total" id="nl-total">kr 0</td></tr>
-        </tfoot>
-      </table>
-
-      <!-- FORM -->
-      <div class="nl-form">
-        <div class="nl-field">
-          <label class="nl-label">Apartment</label>
-          <input id="apartment" class="nl-input" value="Nordic Loft Ålesund">
-        </div>
-        <div class="nl-field">
-          <label class="nl-label">Arrival date</label>
-          <input id="arrival_date" type="date" class="nl-input">
-        </div>
-        <div class="nl-field">
-          <label class="nl-label">Guest name</label>
-          <input id="guest_name" class="nl-input" placeholder="Full name">
-        </div>
-        <div class="nl-field">
-          <label class="nl-label">Email</label>
-          <input id="email" type="email" class="nl-input" placeholder="name@email.com">
-        </div>
-        <div class="nl-field">
-          <label class="nl-label">Phone</label>
-          <input id="phone" class="nl-input" placeholder="47XXXXXXXX">
-        </div>
-        <div class="nl-field">
-          <label class="nl-label">Special notes</label>
-          <textarea id="notes" class="nl-textarea" placeholder="Preferred time, pickup, celebration, etc."></textarea>
-        </div>
-        <div class="nl-field" style="grid-column:1 / -1">
-          <label class="nl-label">Concierge – shopping (optional)</label>
-          <input id="concierge_shopping" class="nl-input" placeholder="Grocery list, flowers, cake, etc.">
-        </div>
-        <div class="nl-field" style="grid-column:1 / -1">
-          <label class="nl-label">Concierge – activities (optional)</label>
-          <input id="concierge_activities" class="nl-input" placeholder="Boat trip, photoshoot, dining, etc.">
-        </div>
-      </div>
-
-      <button id="submit-order" class="nl-submit">Send request</button>
-      <div id="nl-ok" class="nl-ok">Thanks! Your request was sent.</div>
-      <div id="nl-err" class="nl-err">Sorry, we could not send your request. Please try again.</div>
-    </div>
-  </div>
-</section>
-
-<script>
-/* ================== CONFIG ================== */
-const WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/dVdmanBYF90Y8ezmaUJW/webhook-trigger/80e29f97-0dcb-4772-9e8a-9583a4198dc3';
-const CURRENCY = 'NOK';
-
-/* Demo products – edit freely */
-const PRODUCTS = [
-  { id:'glass',  title:'Norwegian “Norge” Glass (each)', desc:'Elegant engraved tumbler.', price:299 },
-  { id:'book1',  title:'Questions for Humans — Couples', desc:'Great icebreaker deck.', price:299 },
-  { id:'book2',  title:'Questions for Humans — Friends', desc:'Fun prompts for friends.', price:299 },
-  { id:'tour',   title:'Seaside photo experience with Ira', desc:'Warm, cinematic photos.', price:1590 },
-  { id:'fishing',title:'Fjord fishing with Simon', desc:'Explore secret spots.', price:1990 },
-  { id:'cake',   title:'Celebration cake (8–10 ppl)', desc:'Delivered fresh.', price:590 },
-  { id:'flowers',title:'Seasonal flower bouquet', desc:'Locally arranged.', price:490 },
-  { id:'prosecco',title:'Prosecco on arrival', desc:'Chilled bottle.', price:350 }
-];
-
-/* ================== STATE ================== */
-const CART = new Map(); // id -> {id,title,qty,price,addOns?}
-
-/* ============== HELPERS ============== */
-const money = n => new Intl.NumberFormat('nb-NO',{style:'currency',currency:CURRENCY,maximumFractionDigits:0}).format(n);
-const sum = (arr, sel=x=>x) => arr.reduce((a,b)=>a+sel(b),0);
-
-/* Build human-readable order summary for emails */
-function buildOrderSummary(payload){
-  const lines = [];
-  lines.push(`Apartment: ${payload.apartment}`);
-  lines.push(`Guest: ${payload.guest_name}  •  Phone: ${payload.phone}`);
-  lines.push(`Email: ${payload.email}`);
-  if (payload.arrival_date) lines.push(`Arrival: ${payload.arrival_date}`);
-  lines.push('');
-  lines.push('Items:');
-  if (!payload.items.length) {
-    lines.push('  (none)');
-  } else {
-    payload.items.forEach((it, i) => {
-      const addOns = (it.add_ons && it.add_ons.length) ? `  [${it.add_ons.join(', ')}]` : '';
-      lines.push(`  ${i+1}. ${it.qty} × ${it.title} — ${money(it.subtotal)}${addOns}`);
-    });
-  }
-  lines.push('');
-  lines.push(`Subtotal: ${money(sum(payload.items, x=>x.subtotal))}`);
-  lines.push(`Total:    ${money(payload.total)} (${payload.currency})`);
-  if (payload.notes) { lines.push(''); lines.push('Notes:'); lines.push(`  ${payload.notes}`); }
-  if (payload.concierge?.shopping || payload.concierge?.activities) {
-    lines.push(''); lines.push('Concierge:');
-    if (payload.concierge.shopping)  lines.push(`  Shopping: ${payload.concierge.shopping}`);
-    if (payload.concierge.activities) lines.push(`  Activities: ${payload.concierge.activities}`);
-  }
-  return lines.join('\n');
-}
-
-/* ============== RENDER PRODUCTS ============== */
-const grid = document.getElementById('nl-grid');
-function renderProducts(){
-  grid.innerHTML = '';
-  PRODUCTS.forEach(p=>{
-    const card = document.createElement('div');
-    card.className = 'nl-card';
-    card.innerHTML = `
-      <div>
-        <div class="nl-line">
-          <h3 class="nl-title">${p.title}</h3>
-          <div class="nl-price">${money(p.price)}</div>
-        </div>
-        <p class="nl-desc">${p.desc || ''}</p>
-      </div>
-      <div class="nl-qtyrow">
-        <div class="nl-step">
-          <button class="nl-btn" data-act="minus">−</button>
-          <div class="nl-val" data-val>0</div>
-          <button class="nl-btn" data-act="plus">+</button>
-        </div>
-        <button class="nl-add" data-add>Add</button>
-      </div>
-    `;
-    const valEl = card.querySelector('[data-val]');
-    const minus = card.querySelector('[data-act="minus"]');
-    const plus  = card.querySelector('[data-act="plus"]');
-    const add   = card.querySelector('[data-add]');
-
-    let qty = 0;
-    const setQty = q => { qty = Math.max(0, Math.min(999,q)); valEl.textContent = qty; add.disabled = qty===0; };
-
-    minus.addEventListener('click', ()=> setQty(qty-1));
-    plus .addEventListener('click', ()=> setQty(qty+1));
-    add  .addEventListener('click', ()=>{
-      if (qty<=0) return;
-      const existing = CART.get(p.id) || { id:p.id, title:p.title, qty:0, price:p.price, addOns:[] };
-      existing.qty += qty;
-      CART.set(p.id, existing);
-      setQty(0);
-      renderCart();
-    });
-
-    grid.appendChild(card);
-  });
-}
-
-/* ============== RENDER CART ============== */
-const rowsEl = document.getElementById('nl-rows');
-const totalEl = document.getElementById('nl-total');
-
-function renderCart(){
-  const items = Array.from(CART.values()).filter(i=>i.qty>0);
-  rowsEl.innerHTML = '';
-  if (!items.length){
-    rowsEl.innerHTML = '<tr><td colspan="4" style="color:var(--muted);padding:10px 6px">No items yet.</td></tr>';
-  } else {
-    items.forEach(it=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${it.title}</td>
-        <td class="nl-right">${it.qty}</td>
-        <td class="nl-right">${money(it.price)}</td>
-        <td class="nl-right">${money(it.qty*it.price)}</td>
-      `;
-      rowsEl.appendChild(tr);
-    });
-  }
-  const total = sum(items, x=>x.qty*x.price);
-  totalEl.textContent = money(total);
-}
-
-/* ============== FORM / SUBMIT TO WEBHOOK ============== */
-function getFormValues(){
-  return {
-    apartment:    document.querySelector('#apartment')?.value || 'Nordic Loft Ålesund',
-    guest_name:   document.querySelector('#guest_name')?.value?.trim() || '',
-    email:        document.querySelector('#email')?.value?.trim() || '',
-    phone:        document.querySelector('#phone')?.value?.trim() || '',
-    arrival_date: document.querySelector('#arrival_date')?.value || '',
-    notes:        document.querySelector('#notes')?.value?.trim() || '',
-    concierge: {
-      shopping:   document.querySelector('#concierge_shopping')?.value?.trim() || '',
-      activities: document.querySelector('#concierge_activities')?.value?.trim() || ''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Nordic Loft Concierge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #121418;
+      --muted: #767681;
+      --glass: rgba(255, 255, 255, 0.7);
+      --sand: #e9e2d6;
+      --champ: #d9b08a;
+      --ring: 0 0 3px rgba(94, 155, 231, 0.35);
+      --shadow: 0 10px 30px rgba(20, 24, 32, 0.14);
+      --accent: #1b2b48;
+      --blur: blur(18px);
     }
-  };
-}
 
-function buildPayload(){
-  const form = getFormValues();
-  const items = Array.from(CART.values()).filter(i=>i.qty>0).map(it=>({
-    id: it.id,
-    title: it.title,
-    qty: it.qty,
-    unit_price: it.price,
-    subtotal: it.qty * it.price,
-    add_ons: it.addOns || []
-  }));
-  const total = sum(items, x=>x.subtotal);
+    * { box-sizing: border-box; }
 
-  const payload = {
-    apartment:   form.apartment,
-    guest_name:  form.guest_name,
-    email:       form.email,
-    phone:       form.phone,
-    arrival_date:form.arrival_date,
-    notes:       form.notes,
-    concierge:   { shopping: form.concierge.shopping, activities: form.concierge.activities },
-    items,
-    currency:    CURRENCY,
-    total,
-    created_at:  new Date().toISOString()
-  };
+    body {
+      font-family: Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: var(--ink);
+      background: linear-gradient(180deg, #b0d5eb 0%, #e9f0f4 60%, #ffffff 100%);
+      margin: 0;
+      padding: 0;
+    }
 
-  payload.order_summary = buildOrderSummary(payload);
-  payload.email_subject = `New order — ${form.apartment} — ${form.guest_name}`;
-  payload.email_preview = `${items.length} item(s) • ${money(total)} • Arrival ${form.arrival_date || '-'}`;
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
 
-  return payload;
-}
+    .logo {
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: var(--accent);
+    }
 
-async function submitOrder(){
-  const ok  = document.getElementById('nl-ok');
-  const err = document.getElementById('nl-err');
-  ok.style.display='none'; err.style.display='none';
+    main {
+      max-width: 1100px;
+      margin: 24px auto;
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
 
-  const data = buildPayload();
-  if (!data.guest_name || !data.email){
-    err.textContent = 'Please add your name and email.'; err.style.display='block'; return;
-  }
-  try{
-    const r = await fetch(WEBHOOK_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(data)
+    h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--accent);
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    .product {
+      background: rgba(255, 255, 255, 0.65);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+      transition: transform 0.2s ease;
+    }
+
+    .product:hover { transform: translateY(-3px); }
+
+    .product img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .product-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 14px;
+    }
+
+    .product h3 {
+      font-size: 1rem;
+      margin: 0 0 6px;
+    }
+
+    .product p {
+      font-size: 0.9rem;
+      margin: 0 0 12px;
+      color: #444;
+    }
+
+    .product .price {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .product button {
+      background: #f5d48a;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      align-self: flex-start;
+      transition: all 0.2s ease;
+    }
+
+    .product button:hover {
+      background: #eac46f;
+      transform: scale(1.04);
+    }
+
+    .cart-summary {
+      margin-top: 30px;
+      padding: 18px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.6);
+      box-shadow: var(--shadow);
+    }
+
+    .cart-summary h3 {
+      margin-top: 0;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 0.95rem;
+    }
+
+    .submit-btn {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+
+    .submit-btn:hover {
+      opacity: 0.9;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: #555;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="logo">Nordic Loft Concierge</div>
+  </header>
+
+  <main>
+    <h2>Featured Add-Ons</h2>
+    <div class="product-grid" id="productList"></div>
+
+    <h2 style="margin-top:40px;">Activities & Arrangements</h2>
+    <div class="product-grid" id="activityList"></div>
+
+    <div class="cart-summary" id="cart">
+      <h3>Your Selection</h3>
+      <div id="cartItems"></div>
+      <div style="margin-top:12px;font-weight:700;">Total: kr <span id="totalPrice">0</span></div>
+      <form id="orderForm">
+        <input type="text" id="name" placeholder="Your name" required style="width:100%;padding:8px;margin-top:10px;">
+        <input type="email" id="email" placeholder="Email" required style="width:100%;padding:8px;margin-top:10px;">
+        <input type="text" id="phone" placeholder="Phone / WhatsApp" required style="width:100%;padding:8px;margin-top:10px;">
+        <textarea id="notes" placeholder="Notes or timing" style="width:100%;padding:8px;margin-top:10px;"></textarea>
+        <button type="submit" class="submit-btn">Send Request</button>
+      </form>
+    </div>
+  </main>
+
+  <footer>© 2025 Nordic Loft Ålesund – Concierge Service</footer>
+
+  <script>
+    const products = [
+      { id: 1, name: "House Red Wine – Malbec", price: 349, img: "https://images.unsplash.com/photo-1603112579845-9b62c2d8dc3c", desc: "A smooth, food-friendly Malbec." },
+      { id: 2, name: "Norwegian “Norge” Glass", price: 299, img: "https://images.unsplash.com/photo-1581382575275-9792089f3b6b", desc: "Elegant engraved tumbler." },
+      { id: 3, name: "Talking Hearts — Couples", price: 299, img: "https://images.unsplash.com/photo-1545239351-1141bd82e8a6", desc: "Deep and playful prompts." },
+      { id: 4, name: "Questions for Humans — Couples", price: 249, img: "https://images.unsplash.com/photo-1556906781-9b3a4d1a2b6f", desc: "Light, funny prompts." },
+      { id: 5, name: "Date Night Adventure — Scratch-Offs", price: 349, img: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4", desc: "Scratch, reveal, and go!" },
+    ];
+
+    const activities = [
+      { id: 6, name: "VIP Photo Shoot with Ira", price: 0, img: "https://images.unsplash.com/photo-1531746790731-6c087fecd65a", desc: "Private photo experience with Ira, cinematic style." },
+      { id: 7, name: "Fishing with Simon (local fisher)", price: 0, img: "https://images.unsplash.com/photo-1549887534-3db1bd59dcca", desc: "Join Simon for authentic fjord fishing and scenic spots." }
+    ];
+
+    const cart = {};
+
+    function renderProducts(list, containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = "";
+      list.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "product";
+        card.innerHTML = `
+          <img src="${item.img}" alt="${item.name}" />
+          <div class="product-content">
+            <div>
+              <h3>${item.name}</h3>
+              <p>${item.desc}</p>
+              ${item.price > 0 ? `<div class="price">kr ${item.price}</div>` : `<div class="price">On request</div>`}
+            </div>
+            <button onclick="addToCart(${item.id}, '${item.name}', ${item.price})">Add</button>
+          </div>`;
+        container.appendChild(card);
+      });
+    }
+
+    function addToCart(id, name, price) {
+      if (!cart[id]) cart[id] = { name, price, qty: 1 };
+      else cart[id].qty++;
+      updateCart();
+    }
+
+    function updateCart() {
+      const cartItems = document.getElementById("cartItems");
+      cartItems.innerHTML = "";
+      let total = 0;
+      Object.values(cart).forEach(item => {
+        const row = document.createElement("div");
+        row.className = "cart-item";
+        row.innerHTML = `<span>${item.name} × ${item.qty}</span><span>${item.price > 0 ? "kr " + (item.price * item.qty) : "Request"}</span>`;
+        cartItems.appendChild(row);
+        total += item.price * item.qty;
+      });
+      document.getElementById("totalPrice").textContent = total;
+    }
+
+    document.getElementById("orderForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value,
+        notes: document.getElementById("notes").value,
+        cart: Object.values(cart),
+        total: document.getElementById("totalPrice").textContent
+      };
+      await fetch("https://services.leadconnectorhq.com/hooks/ZOaFJ8FLtFptFJMy2ZSH/webhook-trigger/f540af18-28fb-4fdc-82cc-1a3a114d4142", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      alert("Your request has been sent!");
+      e.target.reset();
     });
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    ok.style.display='block';
-    // optional: clear cart
-    // CART.clear(); renderCart();
-  }catch(e){
-    err.textContent = 'Could not send your request. Please try again.'; err.style.display='block';
-    console.error(e);
-  }
-}
 
-document.getElementById('submit-order').addEventListener('click', submitOrder);
-
-/* INIT */
-renderProducts();
-renderCart();
-</script>
+    renderProducts(products, "productList");
+    renderProducts(activities, "activityList");
+  </script>
+</body>
+</html>
