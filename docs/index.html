@@ -1,473 +1,505 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<title>Nordic Loft Ålesund — Concierge</title>
-<style>
-  :root{
-    --ink:#121418; --muted:#6f7681;
-    --glass:rgba(255,255,255,.78); --glass-bd:rgba(255,255,255,.38);
-    --sand:#e9e2d6; --champ:#d9be8a;
-    --ring:0 0 0 3px rgba(94,155,231,.35); --shadow:0 14px 36px rgba(20,24,32,.14);
+<div id="o-uae-form"></div>
+
+{% raw %}
+<script>
+(function(){
+  const mount = document.getElementById('o-uae-form');
+  let root; try { root = mount.attachShadow({mode:'open'}); } catch(e){ root = mount; }
+
+  /* ================== DATA ================== */
+  const PRODUCTS = [
+    { id:'6x150_B500', title:'6×150 mm (B500)', priceAED:960, unitsPerBox:8000, boxesPerPallet:36, lengthMM:150, shipNote:'Available from 1 Dec — ships then' },
+    { id:'6x200_B500', title:'6×200 mm (B500)', priceAED:780, unitsPerBox:6000, boxesPerPallet:36, lengthMM:200, shipNote:'Available from 1 Dec — ships then' },
+    { id:'8x150_B500', title:'8×150 mm (B500)', priceAED:650, unitsPerBox:5000, boxesPerPallet:32, lengthMM:150, shipNote:'Available from 1 Dec — ships then' },
+    { id:'8x200_B500', title:'8×200 mm (B500)', priceAED:490, unitsPerBox:3500, boxesPerPallet:32, lengthMM:200 },
+    { id:'8x230_B500', title:'8×230 mm (B500)', priceAED:525, unitsPerBox:3200, boxesPerPallet:32, lengthMM:230 },
+    { id:'10x230_B250',title:'10×230 mm (B250)', priceAED:360, unitsPerBox:2000, boxesPerPallet:32, lengthMM:230, shipNote:'Available from 1 Dec — ships then' },
+
+    /* HoReCa Paper Wrapped (available 1 Dec) */
+    { id:'OSR_8x230_B250_WP', title:'HoReCa Paper Wrapped — OSR 8×230 B250 WP', priceAED:0, unitsPerBox:2000, boxesPerPallet:32, lengthMM:230, shipNote:'Available from 1 Dec — ships then', horeca:true },
+
+    /* Retail (Dispenser) — adjust boxesPerPallet here if your sheet changes */
+    { id:'OSN_6x200_D50', title:'Retail — OSN 6×200 D50', priceAED:0, unitsPerBox:50,  boxesPerPallet:200, lengthMM:200, shipNote:'Available from 1 Dec — ships then', retail:true },
+    { id:'OSN_8x200_D30', title:'Retail — OSN 8×200 D30', priceAED:0, unitsPerBox:30,  boxesPerPallet:240, lengthMM:200, shipNote:'Available from 1 Dec — ships then', retail:true },
+    { id:'OSB_6x200_D50', title:'Retail — OSB 6×200 D50', priceAED:0, unitsPerBox:50,  boxesPerPallet:200, lengthMM:200, shipNote:'Available from 1 Dec — ships then', retail:true },
+    { id:'OSB_8x200_D30', title:'Retail — OSB 8×200 D30', priceAED:0, unitsPerBox:30,  boxesPerPallet:240, lengthMM:200, shipNote:'Available from 1 Dec — ships then', retail:true }
+  ];
+  const COLORS = ['Nature','Black'];
+  const SURCHARGE = { wrap:0.02, logo:0.01 };
+  const MOQ_PALLETS_FOR_LOGO = 3;
+
+  /* >>> Hard-wired webhook per your latest URL <<< */
+  const WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/dVdmanBYF90Y8ezmaUJW/webhook-trigger/80e29f97-0dcb-4772-9e8a-9583a4198dc3';
+
+  /* ================== STYLE ================== */
+  const style = document.createElement('style');
+  style.textContent = `
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap');
+  *{box-sizing:border-box}
+  .o-container{font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#0e1525;background:transparent;width:100%;overflow-x:hidden}
+  .o-wrap{max-width:1200px;margin:24px auto;padding:24px 16px}
+  @media(min-width:960px){.o-wrap{padding:32px}}
+
+  .o-pills{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:#f1f5f9;border:1px solid #e6ecf3;font-weight:700;font-size:12px;color:#0e1525}
+  .pill .flag{width:18px;height:12px;border-radius:2px;background:linear-gradient(90deg,#00732F 0 33.3%,#fff 33.3% 66.6%,#CE1126 66.6% 100%)}
+  .o-h1{margin:0 0 6px;font-size:26px;font-weight:900;letter-spacing:.2px}
+  @media(min-width:960px){.o-h1{font-size:30px}}
+  .o-sub{margin:0 0 12px;color:#334155}
+
+  /* layout: products left, form right on desktop */
+  .o-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:24px;align-items:start}
+  @media(max-width:1180px){.o-row{grid-template-columns:1fr}} /* form goes below on mobile */
+
+  .o-grid{display:grid;grid-template-columns:repeat(3,minmax(260px,1fr));gap:16px}
+  @media(max-width:1120px){.o-grid{grid-template-columns:repeat(2,minmax(260px,1fr))}}
+  @media(max-width:680px){.o-grid{grid-template-columns:1fr}}
+
+  .o-card{background:#fff;border:2px solid #e6ecf3;border-radius:20px;padding:16px;box-shadow:0 10px 24px rgba(18,38,63,.06);transition:.2s;border-color,.2s box-shadow;overflow:visible}
+  .o-card.active{border-color:#327A91; box-shadow:0 0 0 3px rgba(50,122,145,.12), 0 14px 30px rgba(18,38,63,.10)}
+  .o-title{margin:0 0 4px;font-weight:800;font-size:18px;color:#0c1323}
+  .o-muted{font-size:12px;color:#62708c}
+  .o-price{margin:10px 0 8px;font-weight:900;color:#327A91}
+  .o-ship{display:inline-block;margin-bottom:8px;padding:4px 8px;border-radius:999px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-weight:700;font-size:12px}
+
+  .o-subcard{border:1px solid #e6ecf3;border-radius:14px;padding:12px;margin-top:12px}
+  .o-subhead{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-weight:800}
+  .o-dot{width:10px;height:10px;border-radius:999px;border:1px solid #cbd6e2}
+  .o-dot.nature{background:#c8b091}
+  .o-dot.black{background:#111}
+
+  .o-opt{display:flex;gap:16px;align-items:flex-start;margin:8px 0 4px;flex-wrap:wrap}
+  .o-opt label{display:flex;gap:8px;align-items:flex-start;font-size:13px}
+  .o-opt input[type=checkbox]{width:16px;height:16px;accent-color:#327A91}
+  .o-warn{color:#d92d20;font-size:12px;margin:4px 0 0}
+  .o-warn.pop{animation:o-pop .35s ease-out}
+  @keyframes o-pop{0%{transform:scale(.98);opacity:.6}60%{transform:scale(1.02);opacity:1}100%{transform:scale(1)}}
+
+  .qtyrow{display:flex;align-items:center;gap:12px;margin-top:8px;white-space:nowrap}
+  .qtylabel{flex:0 0 140px;min-width:140px;color:#6b778c;font-size:12px}
+  .step{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+  .btn{width:36px;height:36px;flex:0 0 36px;border-radius:999px;border:1px solid #e6ecf3;background:#f4f7fb;font-weight:800;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none}
+  .btn:focus-visible{outline:2px solid rgba(50,122,145,.35)}
+  .val{min-width:56px;height:40px;padding:0 12px;display:flex;align-items:center;justify-content:center;border-radius:999px;border:2px solid #327A91;background:#f3fafc;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.2px;font-size:16px}
+  .val.pulse{animation:o-pulse .12s ease-out}
+  @keyframes o-pulse{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+  @media(max-width:480px){
+    .qtyrow{flex-wrap:wrap}
+    .qtylabel{flex:1 1 100%;min-width:0;margin-bottom:4px}
+    .step{gap:8px}
   }
-  *{box-sizing:border-box} html,body{margin:0}
-  body{
-    font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-    color:var(--ink);
-    background:linear-gradient(180deg,#8db5e8 0%, #9cc0ec 22%, #e9f2ff 54%, #ffffff 100%);
+
+  /* RIGHT COLUMN (sticky) */
+  .o-side{background:#fff;border:1px solid #e8eef5;border-radius:22px;padding:18px;box-shadow:0 14px 30px rgba(18,38,63,.08);position:sticky;top:16px}
+  .o-line{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin:6px 0}
+  .o-total{font-size:18px;font-weight:900}
+  .o-div{height:1px;background:#e6ecf3;margin:10px 0}
+  .o-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(50,122,145,.12);color:#1e5f70;font-weight:700;font-size:12px}
+
+  .o-field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+  .o-label{font-size:13px;color:#6b778c}
+  .o-input,.o-select,.o-textarea{background:#fff;color:#0c1323;border:1px solid #dbe5ee;border-radius:12px;padding:12px;font:inherit}
+  .o-input:focus,.o-select:focus,.o-textarea:focus{outline:none;box-shadow:0 0 0 4px rgba(50,122,145,.18);border-color:rgba(50,122,145,.5)}
+  .o-submit{width:100%;padding:14px;border-radius:14px;border:0;cursor:pointer;font-weight:900;background:linear-gradient(135deg,#489bb2,#327A91);color:#fff;box-shadow:0 10px 18px rgba(50,122,145,.18)}
+  .o-hidden{display:none}
+
+  /* order summary list in sidebar */
+  .sum-list{margin:8px 0 6px;padding:0;list-style:none;max-height:220px;overflow:auto}
+  .sum-item{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed #e6ecf3}
+  .sum-chip{display:inline-flex;gap:6px;align-items:center;padding:2px 8px;border-radius:999px;background:#f1f5f9;border:1px solid #e6ecf3;font-size:11px}
+  `;
+
+  /* ================== STATE ================== */
+  const cart = {};
+  COLORS.forEach(c=>{
+    PRODUCTS.forEach(p=>{
+      cart[p.id] ??= {}; cart[p.id][c] = { boxes:0, pallets:0, wrap:false, logo:false };
+    });
+  });
+
+  const clamp = (v, lo, hi)=>Math.max(lo, Math.min(hi, v|0));
+  const fmtAED = (n)=>`AED ${n.toLocaleString('en-AE',{maximumFractionDigits:0})}`;
+  const floor = Math.floor;
+
+  function logoAllowed(p, color){
+    if(p.lengthMM === 150) return false;
+    const need = (p.boxesPerPallet||0) * MOQ_PALLETS_FOR_LOGO;
+    return cart[p.id][color].boxes >= need;
   }
-  .wrap{max-width:1100px;margin:12px auto;padding:0 10px}
-  .panel{background:var(--glass);border:1px solid var(--glass-bd);border-radius:18px;box-shadow:var(--shadow);
-         backdrop-filter:blur(14px) saturate(120%);-webkit-backdrop-filter:blur(14px) saturate(120%);padding:12px;}
-  header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;flex-wrap:wrap}
-  .brand{display:flex;align-items:center;gap:8px}
-  .logo-dot{width:10px;height:10px;border-radius:50%;background:var(--champ);box-shadow:0 0 0 6px rgba(217,190,138,.22)}
-  h1{margin:0;font-size:20px;font-weight:900}
-  .tagline{font-size:12px;color:var(--muted);font-weight:600}
-  .links{display:flex;gap:8px;flex-wrap:wrap}
-  .pill{padding:7px 12px;border-radius:999px;background:#fff;border:1px solid #dfe9f9;color:#1b2b48;font-weight:800;text-decoration:none;box-shadow:0 0 0 3px rgba(90,143,205,.18)}
-  .pill:hover{box-shadow:0 0 0 5px rgba(90,143,205,.30)}
-  .grid{display:grid;grid-template-columns:1.45fr .55fr;gap:12px}
-  @media (max-width:900px){ .grid{grid-template-columns:1fr} }
-  .card{background:#fff;border:1px solid #efe4cf;border-radius:14px;overflow:hidden}
-  .hero{padding:10px 12px;border-bottom:1px solid #efe4cf;background:linear-gradient(180deg,#fff,#fbf7f1)}
-  .hero h2{margin:0;font-size:14px;font-weight:900}
-  .hero p{margin:4px 0 0;color:var(--muted);font-size:12px}
-  .pad{padding:10px 12px}
-  textarea,input[type="text"],input[type="email"],input[type="tel"],input[type="date"]{
-    width:100%;padding:9px;border-radius:10px;border:1px solid #e6ddcc;background:#fff;font-size:14px
+  function logoRemaining(p, color){
+    const need = (p.boxesPerPallet||0) * MOQ_PALLETS_FOR_LOGO;
+    const have = cart[p.id][color].boxes;
+    const rem = Math.max(0, need - have);
+    return { rem, palletsApprox: (p.boxesPerPallet? Math.ceil(rem/(p.boxesPerPallet)):0) };
   }
 
-  /* Groceries */
-  .chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-  @media(max-width:900px){.chips{grid-template-columns:repeat(3,1fr)}}
-  .chip{position:relative;text-align:center;font-weight:800;padding:9px 6px;border-radius:10px;background:#fbfaf8;border:1px solid #e9e2d6;cursor:pointer;transition:.15s}
-  .chip:hover{box-shadow:var(--ring)}
-  .chip.active{background:#fff7e6;border-color:#e3d2ae;box-shadow:0 0 0 6px rgba(217,190,138,.28)}
-  .chip .badge{position:absolute;top:5px;right:5px;background:#121418;color:#fff;font-size:10px;border-radius:999px;padding:1px 6px;display:none}
-  .chip.active .badge{display:inline-block}
-  .custom-row{display:flex;gap:6px;margin-top:6px}
-  .custom-row input{flex:1}
+  function syncFromBoxes(p,color){
+    const st = cart[p.id][color];
+    st.boxes = clamp(st.boxes, 0, 999);
+    st.pallets = (p.boxesPerPallet? floor(st.boxes / p.boxesPerPallet) : 0);
+  }
+  function syncFromPallets(p,color){
+    const st = cart[p.id][color];
+    const maxPal = (p.boxesPerPallet? floor(999 / p.boxesPerPallet) : 0);
+    st.pallets = clamp(st.pallets, 0, maxPal);
+    if(p.boxesPerPallet) st.boxes = st.pallets * p.boxesPerPallet;
+  }
 
-  /* Add-ons */
-  .products{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-  @media(max-width:900px){.products{grid-template-columns:repeat(2,1fr)}}
-  .p{background:#fff;border:1px solid #eee3cf;border-radius:12px;overflow:hidden;transition:.2s;position:relative}
-  .p:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.10)}
-  .p.added{box-shadow:0 0 0 6px rgba(94,155,231,.28), 0 8px 20px rgba(0,0,0,.12)}
-  .p .imgWrap{width:100%;height:170px;background:#fff;display:flex;align-items:center;justify-content:center}
-  .p img{max-width:100%;max-height:100%;object-fit:contain}
-  .meta{padding:8px}
-  .meta .name{font-weight:800;font-size:12.5px}
-  .meta .desc{color:var(--muted);font-size:11.5px;margin-top:2px;min-height:24px}
-  .price-add{display:flex;align-items:center;justify-content:space-between;padding:8px}
-  .price{font-weight:900}
-  .stepper{display:flex;align-items:center;gap:5px}
-  .stepper button{width:26px;height:26px;border-radius:8px;border:1px solid #e6ddcc;background:#fff;font-weight:900;cursor:pointer}
-  .stepper input{width:38px;text-align:center;padding:6px;border-radius:8px;border:1px solid #e6ddcc;background:#fff}
-  .btn{padding:8px 11px;border-radius:10px;border:1px solid #e7e0d2;background:#fff;font-weight:800;cursor:pointer;white-space:nowrap}
-  .btn.gold{background:linear-gradient(180deg,#fff3d4,#ebd09b);border-color:#e3d2ae}
-  .btn.primary{background:linear-gradient(180deg,#7bb9ff,#5a8fcd);border-color:#5a8fcd;color:#fff;box-shadow:0 10px 22px rgba(90,143,205,.28)}
-  .btn:hover{filter:brightness(1.05)} .btn:active{transform:translateY(1px)}
+  function surchargeFor(p,color){
+    const st = cart[p.id][color];
+    const units = p.unitsPerBox||0;
+    let perStraw = 0;
+    if(st.wrap && p.lengthMM!==150) perStraw += SURCHARGE.wrap;
+    if(st.logo && logoAllowed(p,color)) perStraw += SURCHARGE.logo;
+    return perStraw * units * st.boxes;
+  }
 
-  /* Activities */
-  .actgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-  @media(max-width:900px){.actgrid{grid-template-columns:1fr}}
-  .act{background:#fff;border:1px solid #eee3cf;border-radius:12px;padding:8px}
-  .act h3{margin:0 0 4px;font-size:14px;font-weight:900}
-  .act p{margin:0;color:var(--muted);font-size:11.8px;min-height:30px}
-  .imgrow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}
-  .imgrow .ph{width:100%;height:76px;background:#fff;display:flex;align-items:center;justify-content:center;border-radius:8px}
-  .imgrow img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+  function totals(){
+    let boxes=0, sum=0;
+    PRODUCTS.forEach(p=>COLORS.forEach(c=>{
+      const st = cart[p.id][c];
+      boxes += st.boxes;
+      sum += (st.boxes * p.priceAED) + surchargeFor(p,c);
+    }));
+    return { boxes, sum };
+  }
 
-  /* Order */
-  aside{display:flex;flex-direction:column}
-  .order{background:#fff;border:1px solid #efe4cf;border-radius:14px;display:flex;flex-direction:column}
-  .order .head{padding:10px 12px;font-weight:900;border-bottom:1px solid #efe4cf}
-  .order .items{padding:8px 12px;display:flex;flex-direction:column;gap:6px;min-height:100px}
-  .rowItem{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:#fff;border:1px solid #efe3cb;border-radius:10px}
-  .rowItem .l{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-  .est{font-size:10.5px;color:#6a5330;background:#fff0d0;border:1px solid #ecd6a4;padding:2px 6px;border-radius:999px;font-weight:800}
-  .order .total{padding:8px 12px;font-weight:900;border-top:1px solid #efe4cf;display:flex;justify-content:space-between}
-  .order .form{padding:10px 12px;display:grid;gap:6px}
+  /* ================== UI ================== */
+  const container = document.createElement('div');
+  container.className = 'o-container';
+  container.innerHTML = `
+    <div class="o-wrap">
+      <div class="o-pills">
+        <span class="pill"><span class="flag"></span> Ships from Dubai</span>
+        <span class="pill">Currency: AED</span>
+        <span class="pill">+5% VAT</span>
+      </div>
+      <h2 class="o-h1">UAE Wholesale Order – UAE Warehouse</h2>
+      <p class="o-sub">For HoReCa and Distributors • Prices in AED + 5% VAT</p>
+      <ul class="o-sub" style="margin:0 0 12px 18px">
+        <li>Optional: Paper Wrapping (+0.02 AED/straw)</li>
+        <li>Optional: Custom Logo (+0.01 AED/straw, MOQ 3 pallets)</li>
+      </ul>
+      <p class="o-sub" style="margin-bottom:18px">Volume discounts (if applicable) will be applied automatically and shown in your order confirmation email.<br><b>Get started easily</b> — place your order through this order portal today!</p>
 
-  /* Modals */
-  .modal{position:fixed;inset:0;background:rgba(9,14,22,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
-  .modal.open{display:flex;animation:fade .18s ease-out}
-  @keyframes fade{from{opacity:0}to{opacity:1}}
-  .sheet{background:#fff;border:1px solid #eee3cf;border-radius:14px;box-shadow:var(--shadow);max-width:720px;width:100%;max-height:80vh;display:flex;flex-direction:column}
-  .sheet .hd{padding:10px 12px;font-weight:900;border-bottom:1px solid #efe4cf}
-  .sheet .bd{padding:12px;overflow:auto}
-  .sheet .ft{padding:10px 12px;border-top:1px solid #efe4cf;display:flex;gap:8px;justify-content:flex-end}
-  .toast{display:none;margin-top:8px;padding:10px;border-radius:10px;background:#e9f6ff;border:1px solid #cfe9ff;color:#114d7a;font-weight:700}
-  .toast.show{display:block}
-</style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="panel">
-      <header>
-        <div class="brand">
-          <div class="logo-dot"></div>
-          <div>
-            <h1>Nordic Loft Ålesund — Concierge</h1>
-            <div class="tagline">Order add-ons, groceries & experiences (pay later, confirm via message).</div>
-          </div>
-        </div>
-        <div class="links">
-          <a class="pill" href="https://docs.google.com/document/d/12GjZr3Lu2dz23FNhq0lyMkD6iD_7Wx3burXyg3A5o2g/edit?tab=t.0#heading=h.erb8cyn8svqx" target="_blank" rel="noopener">Local Guide</a>
-          <a class="pill" href="https://docs.google.com/document/d/1438-pOjPXDA6WhvLcfWRjl4x0Id2-jwTWMYlVJ1PoEo/edit?usp=sharing" target="_blank" rel="noopener">Check-in</a>
-          <a class="pill" href="https://www.airbnb.no/rooms/1292161045124316301?guests=1&adults=1&s=67&unique_share_id=018ac709-a518-4a2a-8bd2-ea034dd70f1f" target="_blank" rel="noopener">View on Airbnb</a>
-        </div>
-      </header>
-
-      <div class="grid">
-        <!-- LEFT -->
+      <div class="o-row">
+        <!-- PRODUCTS LEFT -->
         <div>
-          <!-- Groceries -->
-          <section class="card">
-            <div class="hero"><h2>Grocery & Shopping Service</h2><p>Tap to add. Groceries are <strong>Request Quote</strong> (priced after shopping).</p></div>
-            <div class="pad">
-              <div class="chips" id="groceryChips">
-                <div class="chip" data-id="gro-milk" data-name="Grocery: Milk">Milk<span class="badge">1</span></div>
-                <div class="chip" data-id="gro-oat" data-name="Grocery: Oat Milk">Oat Milk<span class="badge">1</span></div>
-                <div class="chip" data-id="gro-eggs" data-name="Grocery: Eggs (12)">Eggs (12)<span class="badge">1</span></div>
-                <div class="chip" data-id="gro-bread" data-name="Grocery: Fresh Bread">Fresh Bread<span class="badge">1</span></div>
-                <div class="chip" data-id="gro-fruit" data-name="Grocery: Seasonal Fruit">Seasonal Fruit<span class="badge">1</span></div>
-                <div class="chip" data-id="gro-spark" data-name="Grocery: Sparkling Water (1.5L)">Sparkling Water (1.5L)<span class="badge">1</span></div>
-                <div class="chip" data-id="gro-snacks" data-name="Grocery: Snacks & Chocolates">Snacks & Chocolates<span class="badge">1</span></div>
-                <div class="chip" data-id="gro-flowers" data-name="Grocery: Flowers">Flowers<span class="badge">1</span></div>
-              </div>
-              <div style="margin-top:6px;color:var(--muted);font-size:12px">Tap again to remove. You can also add a custom item:</div>
-              <div class="custom-row">
-                <input id="customGroceryName" type="text" placeholder="e.g., Gluten-free bread (2), Oatly Barista x2">
-                <button class="btn gold" id="addCustomGrocery" type="button">Add custom</button>
-              </div>
-              <textarea id="shoppingText" rows="2" placeholder="Optional: full shopping list / brands / quantities…"></textarea>
-            </div>
-          </section>
-
-          <!-- Featured Add-Ons -->
-          <section class="card" style="margin-top:10px">
-            <div class="hero"><h2>Featured Add-Ons</h2><p>These are the products you’ll find in the loft — feel free to purchase what you see.</p></div>
-            <div class="pad">
-              <div class="products" id="products">
-                <!-- 1 Wine -->
-                <div class="p" data-id="wine-house-red" data-price="349" data-name="House Red Wine – Malbec (bottle)">
-                  <div class="imgWrap"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d6284ab728e809922cc0.png" alt="Malbec"></div>
-                  <div class="meta"><div class="name">House Red Wine – Malbec (bottle)</div><div class="desc">A smooth, food-friendly Malbec.</div></div>
-                  <div class="price-add"><div class="price">kr 349</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add</button></div></div>
-                </div>
-                <!-- 2 Glass -->
-                <div class="p" data-id="norsk-glass" data-price="299" data-name="Norwegian “Norge” Glass (each)">
-                  <div class="imgWrap"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5b64ab72867ed9222eb.jpeg" alt="Norge glass"></div>
-                  <div class="meta"><div class="name">Norwegian “Norge” Glass (each)</div><div class="desc">Elegant engraved tumbler.</div></div>
-                  <div class="price-add"><div class="price">kr 299</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add</button></div></div>
-                </div>
-                <!-- 3 Talking Hearts -->
-                <div class="p" data-id="talking-hearts" data-price="299" data-name="Talking Hearts — Couples (200 questions)">
-                  <div class="imgWrap"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5bcc9994e8e9cc930df.png" alt="Talking Hearts"></div>
-                  <div class="meta"><div class="name">Talking Hearts — Couples (200 questions)</div><div class="desc">Deep and playful prompts.</div></div>
-                  <div class="price-add"><div class="price">kr 299</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add</button></div></div>
-                </div>
-                <!-- 4 Know Me 50 -->
-                <div class="p" data-id="know-me-50" data-price="199" data-name="How Well Do You Know Me? (50 questions)">
-                  <div class="imgWrap"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5bd865897e50df7adca.png" alt="Know Me"></div>
-                  <div class="meta"><div class="name">How Well Do You Know Me? (50 questions)</div><div class="desc">Quick after-dinner game.</div></div>
-                  <div class="price-add"><div class="price">kr 199</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add</button></div></div>
-                </div>
-                <!-- 5 Questions for Humans -->
-                <div class="p" data-id="qfh" data-price="249" data-name="Questions for Humans — Couples">
-                  <div class="imgWrap"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5bc691ecd36e165f07a.png" alt="Questions for Humans"></div>
-                  <div class="meta"><div class="name">Questions for Humans — Couples</div><div class="desc">Light, funny prompts.</div></div>
-                  <div class="price-add"><div class="price">kr 249</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add</button></div></div>
-                </div>
-                <!-- 6 Date Night -->
-                <div class="p" data-id="date-night" data-price="349" data-name="Date Night Adventure — 40 Scratch-Offs">
-                  <div class="imgWrap"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5bc691ecd7d2f65f079.png" alt="Date Night Adventure"></div>
-                  <div class="meta"><div class="name">Date Night Adventure — 40 Scratch-Offs</div><div class="desc">Scratch, reveal, and go!</div></div>
-                  <div class="price-add"><div class="price">kr 349</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add</button></div></div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Activities -->
-          <section class="card" style="margin-top:10px">
-            <div class="hero"><h2>Activities & Arrangements</h2><p>Tap “Learn more”, then “Add” to request — we’ll confirm availability & pricing.</p></div>
-            <div class="pad">
-              <div class="actgrid" id="activityGrid">
-                <!-- VIP Photo Shoot with Ira -->
-                <div class="act" data-id="act-ira" data-name="VIP Photo Shoot with Ira">
-                  <h3>VIP Photo Shoot with Ira</h3>
-                  <p>Private photo experience with <strong>Ira</strong>, a talented Ukrainian photographer with warm, cinematic style.</p>
-                  <div class="imgrow">
-                    <div class="ph"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011302a7ea2ed2ffc83f.jpeg" alt=""></div>
-                    <div class="ph"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f901134ab728b08f9a0a93.jpeg" alt=""></div>
-                    <div class="ph"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011342c58c012d355c2b.jpeg" alt=""></div>
-                  </div>
-                  <div style="display:flex;gap:6px">
-                    <button class="btn" data-learn="ira">Learn more</button>
-                    <button class="btn gold" data-action="add-activity">Add</button>
-                  </div>
-                </div>
-                <!-- Fishing with Simon -->
-                <div class="act" data-id="act-simon" data-name="Fishing with Simon (local fisher)">
-                  <h3>Fishing with Simon (local fisher)</h3>
-                  <p>Go with <strong>Simon</strong> for authentic fjord fishing. Spot seals, explore islands, get dropped at secret places, take home prepared fish.</p>
-                  <div class="imgrow">
-                    <div class="ph"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2bad50b295805908f2.jpeg" alt=""></div>
-                    <div class="ph"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b691ecdb41b6d0430.jpeg" alt=""></div>
-                    <div class="ph"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b5da419257a2f5a5c.jpeg" alt=""></div>
-                  </div>
-                  <div style="display:flex;gap:6px">
-                    <button class="btn" data-learn="simon">Learn more</button>
-                    <button class="btn gold" data-action="add-activity">Add</button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="pad" style="padding:6px 0 0">
-                <label>Special notes or timing</label>
-                <textarea id="activityText" rows="2" placeholder="Preferred time, pickup, celebration, etc."></textarea>
-              </div>
-            </div>
-          </section>
-
-          <div class="pad" style="text-align:center;color:#5f676f;font-size:11.5px;font-weight:700;">Payments arranged after confirmation.</div>
-          <div id="thanks" class="toast">Thank you! Your request has been sent. We will confirm shortly.</div>
+          <div class="o-grid" id="grid"></div>
         </div>
 
-        <!-- RIGHT -->
-        <aside>
-          <div class="order">
-            <div class="head">Your Order</div>
-            <div id="cartItems" class="items"></div>
-            <div id="emptyNote" class="pad" style="color:var(--muted);font-size:12px">Selected items will appear here.</div>
-            <div class="total"><span>Total</span><span id="grand">kr 0</span></div>
-            <div class="form">
-              <input id="guestName" type="text" placeholder="Your name">
-              <input id="email" type="email" placeholder="Email">
-              <input id="phone" type="tel" placeholder="Phone / WhatsApp">
-              <input id="arrivalDate" type="date" placeholder="Arrival date">
-              <input id="room" type="text" value="Nordic Loft Ålesund" placeholder="Apartment">
-              <textarea id="notes" rows="2" placeholder="Delivery timing, allergies, anything else…"></textarea>
-              <button id="openSummary" class="btn primary">Review & Place Order</button>
-            </div>
+        <!-- ORDER FORM RIGHT -->
+        <aside class="o-side">
+          <div class="o-line"><div>Subtotal</div><div id="subtotal">AED 0</div></div>
+          <div class="o-line"><div>Items (boxes)</div><div id="items">0</div></div>
+          <div class="o-div"></div>
+
+          <!-- Live order summary -->
+          <div class="o-line" style="font-weight:800;margin:4px 0 0">Order summary</div>
+          <ul id="sumList" class="sum-list"></ul>
+          <div class="o-div"></div>
+
+          <div class="o-line o-total"><div>Total</div><div id="total">AED 0</div></div>
+          <div class="o-div"></div>
+
+          <div class="o-field"><label class="o-label">Full name</label><input class="o-input" id="f_name" placeholder="Full name"></div>
+          <div class="o-field"><label class="o-label">Email</label><input class="o-input" id="f_email" placeholder="name@company.com"></div>
+          <div class="o-field"><label class="o-label">WhatsApp (optional)</label><input class="o-input" id="f_whatsapp" placeholder="9715XXXXXXXX"></div>
+          <div class="o-field"><label class="o-label">Company</label><input class="o-input" id="f_company" placeholder="Company name"></div>
+
+          <div class="o-field"><label class="o-label">Delivery Address (Dubai)</label><input class="o-input" id="f_address" placeholder="Street, building, apt/floor"></div>
+          <div class="o-field"><label class="o-label">District</label>
+            <select class="o-select" id="f_district">
+              <option value="">Select area</option><option>Dubai Marina</option><option>JLT</option><option>Business Bay</option><option>Jebel Ali</option><option>Deira</option><option>Other</option>
+            </select>
           </div>
+
+          <div class="o-field"><label class="o-label"><input type="checkbox" id="f_diff" style="margin-right:8px"> Deliver to a different recipient & address</label></div>
+          <div id="diffWrap" class="o-hidden">
+            <div class="o-field"><label class="o-label">Recipient name</label><input class="o-input" id="d_name" placeholder="Recipient full name"></div>
+            <div class="o-field"><label class="o-label">Recipient phone</label><input class="o-input" id="d_phone" placeholder="9715XXXXXXXX"></div>
+            <div class="o-field"><label class="o-label">Recipient company (optional)</label><input class="o-input" id="d_company" placeholder="Company"></div>
+            <div class="o-field"><label class="o-label">Recipient address</label><input class="o-input" id="d_address" placeholder="Street, building, apt/floor"></div>
+            <div class="o-field"><label class="o-label">Recipient district</label><input class="o-input" id="d_district" placeholder="Area / district"></div>
+          </div>
+
+          <div class="o-field"><label class="o-label">Shipping</label>
+            <select class="o-select" id="f_shipping">
+              <option value="pickup">Pick up (Dubai warehouse)</option>
+              <option value="delivery">Delivery</option>
+            </select>
+          </div>
+
+          <div class="o-field"><label class="o-label">Message (optional)</label>
+            <textarea class="o-textarea" id="f_msg" placeholder="Notes, PO number, timing, etc."></textarea>
+          </div>
+
+          <button class="o-submit" id="submitBtn">Submit Order</button>
+          <div id="formErr" class="o-warn" style="display:none;margin-top:8px"></div>
+          <div id="sentOk" class="o-badge" style="display:none;margin-top:8px">Order submitted</div>
         </aside>
       </div>
     </div>
-  </div>
+  `;
 
-  <!-- Summary Modal -->
-  <div id="summaryModal" class="modal" aria-hidden="true">
-    <div class="sheet">
-      <div class="hd">Review your order</div>
-      <div class="bd">
-        <div id="summaryList" style="display:grid;gap:8px"></div>
-        <hr style="border:0;border-top:1px solid #eee3cf;margin:10px 0">
-        <div style="display:flex;justify-content:space-between;font-weight:900"><span>Total (priced items)</span><span id="summaryTotal">kr 0</span></div>
-        <div style="margin-top:6px;color:#6f7681">
-          <div><strong>Grocery notes:</strong> <span id="sumShop">—</span></div>
-          <div><strong>Activity notes:</strong> <span id="sumAct">—</span></div>
-        </div>
-        <div style="margin-top:6px;color:#6f7681">
-          <div><strong>Name:</strong> <span id="sumName">—</span></div>
-          <div><strong>Email:</strong> <span id="sumEmail">—</span></div>
-          <div><strong>Phone:</strong> <span id="sumPhone">—</span></div>
-          <div><strong>Arrival:</strong> <span id="sumArrival">—</span></div>
-        </div>
-      </div>
-      <div class="ft">
-        <button id="closeSummary" class="btn">Keep Editing</button>
-        <button id="confirmSend" class="btn gold">Confirm & Send</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Learn More Modal -->
-  <div id="learnModal" class="modal" aria-hidden="true">
-    <div class="sheet">
-      <div class="hd" id="learnTitle">Experience</div>
-      <div class="bd" id="learnBody"></div>
-      <div class="ft"><button class="btn" onclick="toggleLearn(false)">Close</button></div>
-    </div>
-  </div>
-
-<script>
-  /* ------- Config ------- */
-  const webhookURL = "https://services.leadconnectorhq.com/hooks/ZOaFJ8FLtFptFJMy2ZSH/webhook-trigger/f540af18-28fb-4fdc-82cc-1a3a114d4142";
-  const money = n => "kr " + n;
-
-  /* ------- Cart state ------- */
-  const cart = new Map();
-  const cartItems = document.getElementById("cartItems");
-  const emptyNote = document.getElementById("emptyNote");
-  const grandEl = document.getElementById("grand");
-  function addLine({id,name,qty=1,unit_price=0,estimate=false}){
-    const it = cart.get(id) || {id,name,qty:0,unit_price,estimate};
-    it.qty += qty; it.name=name; it.unit_price=unit_price; it.estimate=estimate;
-    if(it.qty<=0) cart.delete(id); else cart.set(id,it);
-    renderCart();
+  function makeStepper(initial, onChange){
+    const wrap = document.createElement('div');
+    wrap.className = 'step';
+    const minus = document.createElement('button'); minus.className='btn'; minus.type='button'; minus.textContent='–';
+    const val = document.createElement('div'); val.className='val'; val.textContent=initial;
+    const plus = document.createElement('button'); plus.className='btn'; plus.type='button'; plus.textContent='+';
+    const pulse=()=>{ val.classList.add('pulse'); setTimeout(()=>val.classList.remove('pulse'),130); };
+    minus.addEventListener('click',()=>onChange(-1,(n)=>{val.textContent=n; pulse();}));
+    plus.addEventListener('click',()=>onChange(+1,(n)=>{val.textContent=n; pulse();}));
+    wrap.append(minus,val,plus);
+    return { el:wrap, set:(n)=>val.textContent=n };
   }
-  function setLine({id,name,qty,unit_price=0,estimate=false}){
-    if(qty<=0){cart.delete(id); renderCart(); return;}
-    cart.set(id,{id,name,qty,unit_price,estimate}); renderCart();
-  }
-  function renderCart(){
-    cartItems.innerHTML=""; let total=0;
-    cart.forEach(i=>{
-      const sub = i.estimate ? 0 : i.qty*(i.unit_price||0);
-      total += sub;
-      const row = document.createElement("div"); row.className="rowItem";
-      row.innerHTML = `
-        <div class="l">
-          <div style="font-weight:800">${i.name}</div>
-          ${i.estimate ? "<span class=\"est\">Request&nbsp;Quote</span>" : ""}
-          <div style="font-size:12px;color:#6f7681">x${i.qty}${i.unit_price? " · kr "+i.unit_price:""}</div>
+
+  function renderProducts(){
+    const grid = container.querySelector('#grid');
+    grid.innerHTML = '';
+
+    PRODUCTS.forEach(p=>{
+      const card = document.createElement('div');
+      card.className = 'o-card';
+      card.dataset.pid = p.id;
+
+      card.innerHTML = `
+        <h3 class="o-title">${p.title}</h3>
+        <div class="o-muted">
+          <div>Per box: ${ (p.unitsPerBox||0).toLocaleString() } straws</div>
+          ${ p.boxesPerPallet ? `<div>Per pallet: ${ ((p.unitsPerBox||0)*(p.boxesPerPallet||0)).toLocaleString() } straws — <b>${p.boxesPerPallet}</b> boxes</div>` : '' }
         </div>
-        <div style="font-weight:900">${i.estimate? "-": money(sub)}</div>`;
-      cartItems.appendChild(row);
+        <div class="o-price">${fmtAED(p.priceAED)} <span class="o-muted">/ box</span></div>
+        ${ p.shipNote ? `<span class="o-ship">${p.shipNote}</span>` : '' }
+      `;
+
+      COLORS.forEach(color=>{
+        const st = cart[p.id][color];
+        const sub = document.createElement('div');
+        sub.className = 'o-subcard';
+
+        const dot = (color==='Nature') ? 'nature' : 'black';
+        const subHead = document.createElement('div');
+        subHead.className='o-subhead';
+        subHead.innerHTML = `<div class="o-dot ${dot}"></div><div style="font-weight:800">${color}</div>`;
+        sub.appendChild(subHead);
+
+        const opt = document.createElement('div'); opt.className='o-opt';
+
+        const wrapDisabled = (p.lengthMM===150);
+        const logoHard = (p.lengthMM===150);
+
+        const wrapLbl = document.createElement('label');
+        wrapLbl.innerHTML = `<input type="checkbox" ${wrapDisabled?'disabled':''} ${st.wrap?'checked':''}> <div><b>Paper Wrapping</b> (+0.02 AED/straw)</div>`;
+        if(wrapDisabled) wrapLbl.style.opacity='.5';
+
+        const logoLbl = document.createElement('label');
+        const allowLogoNow = !logoHard && logoAllowed(p,color);
+        logoLbl.innerHTML = `<input type="checkbox" ${(allowLogoNow?'':'disabled')} ${st.logo?'checked':''}> <div><b>Custom Logo</b> (+0.01 AED/straw)</div>`;
+        if(logoHard || !allowLogoNow) logoLbl.style.opacity='.5';
+
+        opt.append(wrapLbl, logoLbl);
+        sub.appendChild(opt);
+
+        const warn = document.createElement('div'); warn.className='o-warn';
+        const setWarn = ()=>{
+          if(p.lengthMM===150){
+            warn.textContent = 'Paper Wrapping & Custom Logo not available for 150 mm.';
+            warn.style.display='block';
+          } else {
+            const {rem, palletsApprox} = logoRemaining(p,color);
+            if(rem>0){ warn.textContent = `Remaining ${rem} box(es) (~${palletsApprox} pallets) to qualify for Custom Logo.`; warn.style.display='block'; }
+            else { warn.textContent=''; warn.style.display='none'; }
+          }
+        };
+        setWarn();
+        sub.appendChild(warn);
+
+        const rowB = document.createElement('div'); rowB.className='qtyrow';
+        const labB = document.createElement('div'); labB.className='qtylabel'; labB.textContent='Quantity (boxes)';
+        const stepB = makeStepper(st.boxes,(delta,reflect)=>{
+          st.boxes = clamp(st.boxes + delta, 0, 999);
+          syncFromBoxes(p,color);
+          reflect(st.boxes);
+          stepP.set(st.pallets);
+          updateCardActive(p.id); refreshTotals(); renderSummary();
+          const allow = !logoHard && logoAllowed(p,color);
+          const logoInput = logoLbl.querySelector('input');
+          logoInput.disabled = !allow; logoLbl.style.opacity = allow ? '1' : '.5';
+          setWarn();
+        });
+        rowB.append(labB, stepB.el);
+
+        const rowP = document.createElement('div'); rowP.className='qtyrow';
+        const labP = document.createElement('div'); labP.className='qtylabel'; labP.textContent='Quantity (pallets)';
+        const stepP = makeStepper(st.pallets,(delta,reflect)=>{
+          st.pallets = st.pallets + delta;
+          syncFromPallets(p,color);
+          reflect(st.pallets);
+          stepB.set(st.boxes);
+          updateCardActive(p.id); refreshTotals(); renderSummary();
+          const allow = !logoHard && logoAllowed(p,color);
+          const logoInput = logoLbl.querySelector('input');
+          logoInput.disabled = !allow; logoLbl.style.opacity = allow ? '1' : '.5';
+          setWarn();
+        });
+        rowP.append(labP, stepP.el);
+
+        sub.append(rowB, rowP);
+
+        // Wire options
+        const wrapInput = wrapLbl.querySelector('input');
+        const logoInput = logoLbl.querySelector('input');
+        wrapInput.addEventListener('change', e=>{ st.wrap=!!e.target.checked; refreshTotals(); renderSummary(); });
+        logoInput.addEventListener('change', e=>{ st.logo=!!e.target.checked; refreshTotals(); renderSummary(); });
+
+        card.appendChild(sub);
+      });
+
+      grid.appendChild(card);
+      updateCardActive(p.id);
     });
-    grandEl.textContent = money(total);
-    emptyNote.style.display = cart.size ? "none":"block";
   }
 
-  /* ------- Groceries ------- */
-  document.querySelectorAll(".chip").forEach(ch=>{
-    ch.classList.remove("active");
-    ch.addEventListener("click",()=>{
-      const id=ch.dataset.id, name=ch.dataset.name;
-      if(ch.classList.contains("active")){
-        setLine({id,name,qty:0,estimate:true});
-        ch.classList.remove("active");
-      }else{
-        setLine({id,name,qty:1,estimate:true});
-        ch.classList.add("active");
-      }
-    })
-  });
-  document.getElementById("addCustomGrocery").addEventListener("click",()=>{
-    const name=(document.getElementById("customGroceryName").value||"").trim();
-    if(!name) return;
-    addLine({id:"gro-custom-"+Date.now(),name:"Grocery: "+name,qty:1,estimate:true});
-    document.getElementById("customGroceryName").value="";
-  });
+  function updateCardActive(pid){
+    const el = container.querySelector(`.o-card[data-pid="${pid}"]`);
+    if(!el) return;
+    const any = COLORS.some(c=>cart[pid][c].boxes>0 || cart[pid][c].pallets>0);
+    el.classList.toggle('active', any);
+  }
 
-  /* ------- Add-ons ------- */
-  document.getElementById("products").addEventListener("click",(e)=>{
-    const card = e.target.closest(".p"); if(!card) return;
-    const stepBtn = e.target.closest("[data-step]");
-    if(stepBtn){
-      const step = parseInt(stepBtn.getAttribute("data-step"),10);
-      const inp = card.querySelector("input[type=number]");
-      const v = Math.max(0, parseInt(inp.value||"0",10)+step);
-      inp.value = v; return;
-    }
-    if(e.target.dataset.action==="add-product"){
-      const qty = Math.max(0, parseInt(card.querySelector("input[type=number]").value||"0",10));
-      if(qty===0) return;
-      addLine({ id:card.dataset.id, name:card.dataset.name, qty, unit_price:parseInt(card.dataset.price,10), estimate:false });
-      card.classList.add("added");
-      card.querySelector("input[type=number]").value = 0;
-      setTimeout(()=>card.classList.remove("added"),900);
-    }
-  });
+  function refreshTotals(){
+    const t = totals();
+    container.querySelector('#subtotal').textContent = fmtAED(Math.round(t.sum));
+    container.querySelector('#items').textContent = t.boxes.toLocaleString();
+    container.querySelector('#total').textContent = fmtAED(Math.round(t.sum));
+  }
 
-  /* ------- Activities + Learn more ------- */
-  const learnModal=document.getElementById("learnModal");
-  function toggleLearn(open){ learnModal.classList.toggle("open", !!open); learnModal.setAttribute("aria-hidden", open? "false":"true"); }
-  window.toggleLearn=toggleLearn;
+  /* =========== ORDER SUMMARY (SIDEBAR) =========== */
+  function buildLineObjects(){
+    const out=[];
+    PRODUCTS.forEach(p=>COLORS.forEach(c=>{
+      const st = cart[p.id][c]; if(!st.boxes && !st.pallets) return;
+      const wrapAvail = p.lengthMM!==150;
+      const canLogo = wrapAvail && logoAllowed(p,c);
+      out.push({
+        title:p.title, color:c, boxes:st.boxes, pallets:st.pallets, price:p.priceAED,
+        wrap: wrapAvail ? (st.wrap?'Yes':'No') : 'N/A',
+        logo: wrapAvail ? (st.logo ? (canLogo?'Yes':'No (below MOQ)') : 'No') : 'N/A'
+      });
+    }));
+    return out;
+  }
 
-  document.getElementById("activityGrid").addEventListener("click",(e)=>{
-    const addBtn=e.target.closest("[data-action=add-activity]");
-    if(addBtn){
-      const box=addBtn.closest(".act");
-      addLine({id:box.dataset.id+"-"+Date.now(),name:box.dataset.name,qty:1,estimate:true});
-      box.style.boxShadow="0 0 0 6px rgba(94,155,231,.28)"; setTimeout(()=>box.style.boxShadow="",900);
+  function renderSummary(){
+    const list = container.querySelector('#sumList');
+    const lines = buildLineObjects();
+    list.innerHTML = '';
+    if(lines.length===0){
+      list.innerHTML = '<li class="sum-item" style="border-bottom:0;color:#6b778c">No items yet.</li>';
       return;
     }
-    const learnBtn=e.target.closest("[data-learn]");
-    if(learnBtn){
-      const type=learnBtn.getAttribute("data-learn");
-      const title= type==="ira" ? "VIP Photo Shoot with Ira" : "Fishing with Simon";
-      const body= type==="ira"
-       ? `<p style="margin:0 0 8px;color:#6f7681">A private, cinematic photo session with <strong>Ira</strong> around Ålesund. Guidance, warm natural light and editorial framing.</p>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-            <img style="width:100%;height:120px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011302a7ea2ed2ffc83f.jpeg">
-            <img style="width:100%;height:120px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f901134ab728b08f9a0a93.jpeg">
-            <img style="width:100%;height:120px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011342c58c012d355c2b.jpeg">
-          </div>`
-       : `<p style="margin:0 0 8px;color:#6f7681">Head out with <strong>Simon</strong> for authentic fjord fishing. Explore coves, maybe spot seals, and take home prepared fish.</p>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-            <img style="width:100%;height:120px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2bad50b295805908f2.jpeg">
-            <img style="width:100%;height:120px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b691ecdb41b6d0430.jpeg">
-            <img style="width:100%;height:120px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b5da419257a2f5a5c.jpeg">
-          </div>`;
-      document.getElementById("learnTitle").textContent=title;
-      document.getElementById("learnBody").innerHTML=body;
-      toggleLearn(true);
-    }
-  });
-
-  /* ------- Summary modal + submit ------- */
-  const summaryModal=document.getElementById("summaryModal");
-  function toggleSummary(open){ summaryModal.classList.toggle("open", !!open); summaryModal.setAttribute("aria-hidden", open? "false":"true"); }
-  document.getElementById("openSummary").addEventListener("click",()=>{
-    const list=document.getElementById("summaryList"); list.innerHTML=""; let total=0;
-    cart.forEach(i=>{
-      const sub=i.estimate? "-" : money(i.qty*(i.unit_price||0));
-      if(!i.estimate) total+=i.qty*(i.unit_price||0);
-      const row=document.createElement("div"); row.style.display="flex"; row.style.justifyContent="space-between";
-      row.innerHTML=`<div><strong>${i.name}</strong><div style="color:#6f7681">x${i.qty}${i.unit_price? " · kr "+i.unit_price:""}</div></div><div style="font-weight:900">${i.estimate? "<span class='est'>Request&nbsp;Quote</span>":sub}</div>`;
-      list.appendChild(row);
+    lines.forEach(L=>{
+      const li = document.createElement('li'); li.className='sum-item';
+      li.innerHTML = `
+        <div style="flex:1 1 auto;min-width:0">
+          <div style="font-weight:800">${L.title} <span class="sum-chip">${L.color}</span></div>
+          <div class="o-muted">Boxes: <b>${L.boxes}</b> • Pallets: <b>${L.pallets}</b> • Price: <b>AED ${L.price}/box</b></div>
+          <div class="o-muted">Wrap: <b>${L.wrap}</b> • Logo: <b>${L.logo}</b></div>
+        </div>
+      `;
+      list.appendChild(li);
     });
-    document.getElementById("summaryTotal").textContent=money(total);
-    document.getElementById("sumShop").textContent=document.getElementById("shoppingText").value||"—";
-    document.getElementById("sumAct").textContent=document.getElementById("activityText").value||"—";
-    document.getElementById("sumName").textContent=document.getElementById("guestName").value||"—";
-    document.getElementById("sumEmail").textContent=document.getElementById("email").value||"—";
-    document.getElementById("sumPhone").textContent=document.getElementById("phone").value||"—";
-    document.getElementById("sumArrival").textContent=document.getElementById("arrivalDate").value||"—";
-    toggleSummary(true);
-  });
-  document.getElementById("closeSummary").addEventListener("click",()=>toggleSummary(false));
+  }
 
-  document.getElementById("confirmSend").addEventListener("click", async ()=>{
-    const payload = {
-      apartment: document.getElementById("room").value || "Nordic Loft Ålesund",
-      guest_name: document.getElementById("guestName").value,
-      email: document.getElementById("email").value,
-      phone: document.getElementById("phone").value,
-      arrival_date: document.getElementById("arrivalDate").value,
-      notes: document.getElementById("notes").value,
-      concierge: { shopping: document.getElementById("shoppingText").value, activities: document.getElementById("activityText").value },
-      items: Array.from(cart.values()).map(i=>({ id:i.id, name:i.name, qty:i.qty, unit_price:i.unit_price||0, subtotal:(i.unit_price||0)*i.qty, estimate:!!i.estimate })),
-      currency:"NOK",
-      total: Array.from(cart.values()).reduce((s,i)=> s + (i.estimate?0:(i.unit_price||0)*i.qty), 0),
-      created_at: new Date().toISOString()
+  /* ================== SUBMIT ================== */
+  function buildLinesText(){
+    return buildLineObjects().map(L=>`${L.title} — ${L.color}: ${L.boxes} box(es) (${L.pallets} pallet(s)), AED ${L.price}/box, Wrap: ${L.wrap}, Logo: ${L.logo}`);
+  }
+
+  function payload(){
+    const t = totals();
+    const f = id => container.querySelector('#'+id)?.value?.trim() || '';
+    const diff = !!container.querySelector('#f_diff')?.checked;
+
+    // Build email subject + summary
+    const lineStrings = buildLinesText();
+    const subjectName = f('f_company') || f('f_name') || 'New UAE Wholesale Order';
+    const email_subject = `UAE Wholesale Order — ${subjectName} — ${t.boxes} box(es), ${fmtAED(Math.round(t.sum))}`;
+    const email_summary = [
+      `Customer: ${f('f_name')} (${f('f_email')})`,
+      f('f_company') ? `Company: ${f('f_company')}` : null,
+      `Shipping: ${f('f_shipping') || 'pickup'}`,
+      `Subtotal: ${fmtAED(Math.round(t.sum))}`,
+      `Items (boxes): ${t.boxes}`,
+      'Lines:',
+      ...lineStrings.map(s => '• ' + s)
+    ].filter(Boolean).join('\n');
+
+    return {
+      source:'UAE Wholesale Order Portal',
+      email_subject,
+      email_summary,
+      items_boxes: t.boxes,
+      subtotal_aed: Math.round(t.sum),
+      shipping: f('f_shipping'),
+      customer:{
+        name:f('f_name'), email:f('f_email'), whatsapp:f('f_whatsapp'),
+        company:f('f_company'), address:f('f_address'), district:f('f_district'),
+        message:f('f_msg')
+      },
+      deliver_to_different: diff ? {
+        name:f('d_name'), phone:f('d_phone'), company:f('d_company'),
+        address:f('d_address'), district:f('d_district')
+      } : null,
+      lines: lineStrings,
+      cart
     };
+  }
+
+  async function submitOrder(){
+    const err = container.querySelector('#formErr');
+    const ok  = container.querySelector('#sentOk');
+    err.style.display='none'; ok.style.display='none';
+
+    const p = payload();
+    if(!p.customer.name || !p.customer.email){
+      err.textContent='Please fill in name and email.'; err.style.display='block'; return;
+    }
+    if(p.items_boxes<=0){
+      err.textContent='Please add at least 1 box to your order.'; err.style.display='block'; return;
+    }
 
     try{
-      const res = await fetch("https://services.leadconnectorhq.com/hooks/ZOaFJ8FLtFptFJMy2ZSH/webhook-trigger/f540af18-28fb-4fdc-82cc-1a3a114d4142",
-        {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-      if(!res.ok) throw new Error("Network");
-      toggleSummary(false);
-      document.getElementById("thanks").classList.add("show");
-      cart.clear(); renderCart();
-      document.querySelectorAll(".chip.active").forEach(c=>c.classList.remove("active"));
-      document.getElementById("shoppingText").value="";
-      document.getElementById("activityText").value="";
+      const r = await fetch(WEBHOOK_URL,{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          // Some endpoints require this to avoid CORS preflight issues; harmless if ignored:
+          'Accept':'application/json, text/plain, */*'
+        },
+        body:JSON.stringify(p)
+      });
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      ok.style.display='inline-block';
     }catch(e){
-      alert("Could not submit right now. Please try again later.");
-      console.error(e);
+      err.textContent='Could not submit order. Please try again.'; err.style.display='block';
     }
-  });
+  }
 
-  renderCart();
+  /* ================== INIT ================== */
+  root.appendChild(style);
+  root.appendChild(container);
+
+  renderProducts();
+  refreshTotals();
+  renderSummary();
+
+  container.querySelector('#submitBtn').addEventListener('click', submitOrder);
+  container.querySelector('#f_diff').addEventListener('change', (e)=>{
+    container.querySelector('#diffWrap').classList.toggle('o-hidden', !e.target.checked);
+  });
+})();
 </script>
-</body>
-</html>
+{% endraw %}
