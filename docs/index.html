@@ -1,7 +1,7 @@
 <iframe
-  style="width:100%;max-width:1200px;height:3000px;border:0;border-radius:18px;overflow:hidden"
-  loading="lazy"
+  style="width:100%;max-width:1200px;height:2400px;border:0;border-radius:18px;overflow:hidden"
   referrerpolicy="no-referrer"
+  loading="lazy"
   srcdoc='
 <!doctype html>
 <html lang="en">
@@ -24,8 +24,7 @@
   body{
     font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
     color:var(--ink);
-    background:linear-gradient(180deg,#8db5e8 0%, #9cc0ec 22%, #e9f2ff 54%, #ffffff 100%); /* site-like gradient */
-    overflow:visible; /* no internal scrolling */
+    background:linear-gradient(180deg,#8db5e8 0%, #9cc0ec 22%, #e9f2ff 54%, #ffffff 100%);
   }
 
   .wrap{max-width:1100px;margin:18px auto;padding:0 12px}
@@ -37,7 +36,7 @@
     padding:16px;
   }
 
-  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
   .brand{display:flex;align-items:center;gap:10px}
   .logo-dot{width:12px;height:12px;border-radius:50%;background:var(--champ);box-shadow:0 0 0 8px rgba(217,190,138,.22)}
   h1{margin:0;font-size:22px;font-weight:900}
@@ -46,7 +45,7 @@
   .pill{padding:9px 14px;border-radius:999px;background:#fff;border:1px solid #dfe9f9;color:#1b2b48;font-weight:800;text-decoration:none;box-shadow:0 0 0 4px rgba(90,143,205,.18)}
   .pill:hover{box-shadow:0 0 0 6px rgba(90,143,205,.30)}
 
-  .grid{display:grid;grid-template-columns:1.45fr .55fr;gap:16px}
+  .grid{display:grid;grid-template-columns:1.4fr .6fr;gap:16px}
   @media (max-width:900px){ .grid{grid-template-columns:1fr} }
 
   .card{background:#fff;border:1px solid #efe4cf;border-radius:16px;overflow:hidden}
@@ -71,36 +70,32 @@
   .custom-row input{flex:1}
 
   /* Add-ons */
-  .products{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .products{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   @media(max-width:900px){.products{grid-template-columns:repeat(2,1fr)}}
   .p{background:#fff;border:1px solid #eee3cf;border-radius:12px;overflow:hidden;transition:.2s;position:relative}
   .p:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(0,0,0,.12)}
   .p.added{box-shadow:0 0 0 6px rgba(94,155,231,.28), 0 10px 22px rgba(0,0,0,.14)}
-  .p .imgWrap{width:100%;height:200px;background:#fff;display:flex;align-items:center;justify-content:center}
-  .p img{max-width:100%;max-height:100%;object-fit:contain}
-  .meta{padding:10px}
-  .meta .name{font-weight:800;font-size:13.5px}
-  .meta .desc{color:var(--muted);font-size:12px;margin-top:3px;min-height:30px}
-  .price-add{display:flex;align-items:center;justify-content:space-between;padding:10px}
+  .p img{width:100%;height:120px;object-fit:cover}
+  .meta{padding:8px}
+  .meta .name{font-weight:800;font-size:12.5px}
+  .meta .desc{color:var(--muted);font-size:12px;margin-top:2px;min-height:28px}
+  .price-add{display:flex;align-items:center;justify-content:space-between;padding:8px}
   .price{font-weight:900}
   .stepper{display:flex;align-items:center;gap:6px}
-  .stepper button{width:28px;height:28px;border-radius:8px;border:1px solid #e6ddcc;background:#fff;font-weight:900;cursor:pointer}
-  .stepper input{width:46px;text-align:center;padding:6px;border-radius:8px;border:1px solid #e6ddcc;background:#fff}
+  .stepper button{width:26px;height:26px;border-radius:8px;border:1px solid #e6ddcc;background:#fff;font-weight:900;cursor:pointer}
+  .stepper input{width:40px;text-align:center;padding:6px;border-radius:8px;border:1px solid #e6ddcc;background:#fff}
   .btn{padding:8px 11px;border-radius:10px;border:1px solid #e7e0d2;background:#fff;font-weight:800;cursor:pointer}
   .btn.gold{background:linear-gradient(180deg,#fff3d4,#ebd09b);border-color:#e3d2ae}
   .btn.primary{background:linear-gradient(180deg,#7bb9ff,#5a8fcd);border-color:#5a8fcd;color:#fff;box-shadow:0 12px 26px rgba(90,143,205,.32)}
-  .btn:hover{filter:brightness(1.05)}
-  .btn:active{transform:translateY(1px)}
 
   /* Activities */
-  .actgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .actgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
   @media(max-width:900px){.actgrid{grid-template-columns:1fr}}
   .act{background:#fff;border:1px solid #eee3cf;border-radius:12px;padding:10px}
   .act h3{margin:0 0 6px;font-size:15px;font-weight:900}
   .act p{margin:0;color:var(--muted);font-size:12px;min-height:32px}
   .imgrow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}
-  .imgrow .ph{width:100%;height:90px;background:#fff;display:flex;align-items:center;justify-content:center;border-radius:8px}
-  .imgrow img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+  .imgrow img{width:100%;height:70px;object-fit:cover;border-radius:8px}
 
   /* Order */
   aside{display:flex;flex-direction:column}
@@ -122,9 +117,7 @@
   .sheet .bd{padding:14px;overflow:auto}
   .sheet .ft{padding:12px 14px;border-top:1px solid #efe4cf;display:flex;gap:8px;justify-content:flex-end}
 
-  /* Thank you */
-  .toast{display:none;margin-top:10px;padding:12px;border-radius:12px;background:#e9f6ff;border:1px solid #cfe9ff;color:#114d7a;font-weight:700}
-  .toast.show{display:block}
+  footer{color:#5f676f;font-size:12px;font-weight:700;text-align:center;margin-top:10px}
 </style>
 </head>
 <body>
@@ -171,46 +164,40 @@
             </div>
           </section>
 
-          <!-- Featured Add-Ons -->
+          <!-- Add-Ons -->
           <section class="card" style="margin-top:12px">
             <div class="hero"><h2>Featured Add-Ons</h2><p>These are the products you’ll find in the loft — feel free to purchase what you see.</p></div>
             <div class="pad">
               <div class="products" id="products">
-                <!-- 1 Wine -->
                 <div class="p" data-id="wine-house-red" data-price="349" data-name="House Red Wine – Malbec (bottle)">
-                  <div class="imgWrap"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d6284ab728e809922cc0.png" alt="Malbec"></div>
+                  <img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d6284ab728e809922cc0.png" alt="">
                   <div class="meta"><div class="name">House Red Wine – Malbec (bottle)</div><div class="desc">A smooth, food-friendly Malbec.</div></div>
-                  <div class="price-add"><div class="price">kr 349</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add to cart</button></div></div>
+                  <div class="price-add"><div class="price">kr 349</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add</button></div></div>
                 </div>
-                <!-- 2 Glass -->
                 <div class="p" data-id="norsk-glass" data-price="299" data-name="Norwegian “Norge” Glass (each)">
-                  <div class="imgWrap"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5b64ab72867ed9222eb.jpeg" alt="Norge glass"></div>
+                  <img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5b64ab72867ed9222eb.jpeg" alt="">
                   <div class="meta"><div class="name">Norwegian “Norge” Glass (each)</div><div class="desc">Elegant engraved tumbler.</div></div>
-                  <div class="price-add"><div class="price">kr 299</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add to cart</button></div></div>
+                  <div class="price-add"><div class="price">kr 299</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add</button></div></div>
                 </div>
-                <!-- 3 Talking Hearts -->
                 <div class="p" data-id="talking-hearts" data-price="299" data-name="Talking Hearts — Couples (200 questions)">
-                  <div class="imgWrap"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5bcc9994e8e9cc930df.png" alt="Talking Hearts"></div>
+                  <img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5bcc9994e8e9cc930df.png" alt="">
                   <div class="meta"><div class="name">Talking Hearts — Couples (200 questions)</div><div class="desc">Deep and playful prompts.</div></div>
-                  <div class="price-add"><div class="price">kr 299</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add to cart</button></div></div>
+                  <div class="price-add"><div class="price">kr 299</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add</button></div></div>
                 </div>
-                <!-- 4 Know Me 50 -->
                 <div class="p" data-id="know-me-50" data-price="199" data-name="How Well Do You Know Me? (50 questions)">
-                  <div class="imgWrap"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5bd865897e50df7adca.png" alt="Know Me"></div>
+                  <img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5bd865897e50df7adca.png" alt="">
                   <div class="meta"><div class="name">How Well Do You Know Me? (50 questions)</div><div class="desc">Quick after-dinner game.</div></div>
-                  <div class="price-add"><div class="price">kr 199</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add to cart</button></div></div>
+                  <div class="price-add"><div class="price">kr 199</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add</button></div></div>
                 </div>
-                <!-- 5 Questions for Humans -->
                 <div class="p" data-id="qfh" data-price="249" data-name="Questions for Humans — Couples">
-                  <div class="imgWrap"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5bc691ecd36e165f07a.png" alt="Questions for Humans"></div>
+                  <img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5bc691ecd36e165f07a.png" alt="">
                   <div class="meta"><div class="name">Questions for Humans — Couples</div><div class="desc">Light, funny prompts.</div></div>
-                  <div class="price-add"><div class="price">kr 249</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add to cart</button></div></div>
+                  <div class="price-add"><div class="price">kr 249</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add</button></div></div>
                 </div>
-                <!-- 6 Date Night -->
                 <div class="p" data-id="date-night" data-price="349" data-name="Date Night Adventure — 40 Scratch-Offs">
-                  <div class="imgWrap"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5bc691ecd7d2f65f079.png" alt="Date Night Adventure"></div>
+                  <img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8d5bc691ecd7d2f65f079.png" alt="">
                   <div class="meta"><div class="name">Date Night Adventure — 40 Scratch-Offs</div><div class="desc">Scratch, reveal, and go!</div></div>
-                  <div class="price-add"><div class="price">kr 349</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add to cart</button></div></div>
+                  <div class="price-add"><div class="price">kr 349</div><div class="stepper"><button data-step="-1">−</button><input type="number" value="0" min="0"><button data-step="1">+</button><button class="btn gold" data-action="add-product">Add</button></div></div>
                 </div>
               </div>
             </div>
@@ -218,31 +205,30 @@
 
           <!-- Activities -->
           <section class="card" style="margin-top:12px">
-            <div class="hero"><h2>Activities & Arrangements</h2><p>Tap “Learn more”, then “Add” to request — we’ll confirm availability & pricing.</p></div>
+            <div class="hero"><h2>Activities & Arrangements</h2><p>Two curated experiences. Tap “Learn more”, then “Add” to request — we’ll confirm details.</p></div>
             <div class="pad">
               <div class="actgrid" id="activityGrid">
-                <!-- VIP Photo Shoot with Ira -->
                 <div class="act" data-id="act-ira" data-name="VIP Photo Shoot with Ira">
                   <h3>VIP Photo Shoot with Ira</h3>
                   <p>Private photo experience with <strong>Ira</strong>, a talented Ukrainian photographer with warm, cinematic style.</p>
                   <div class="imgrow">
-                    <div class="ph"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011302a7ea2ed2ffc83f.jpeg" alt=""></div>
-                    <div class="ph"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f901134ab728b08f9a0a93.jpeg" alt=""></div>
-                    <div class="ph"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011342c58c012d355c2b.jpeg" alt=""></div>
+                    <img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011302a7ea2ed2ffc83f.jpeg">
+                    <img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f901134ab728b08f9a0a93.jpeg">
+                    <img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011342c58c012d355c2b.jpeg">
                   </div>
                   <div style="display:flex;gap:6px">
                     <button class="btn" data-learn="ira">Learn more</button>
                     <button class="btn gold" data-action="add-activity">Add</button>
                   </div>
                 </div>
-                <!-- Fishing with Simon -->
+
                 <div class="act" data-id="act-simon" data-name="Fishing with Simon (local fisher)">
                   <h3>Fishing with Simon (local fisher)</h3>
-                  <p>Go with <strong>Simon</strong> for authentic fjord fishing. Spot seals, explore islands, get dropped at secret places, take home prepared fish.</p>
+                  <p>Join <strong>Simon</strong> for authentic fjord fishing. Spot seals, explore islands, secret drop-offs, take home prepared fish.</p>
                   <div class="imgrow">
-                    <div class="ph"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2bad50b295805908f2.jpeg" alt=""></div>
-                    <div class="ph"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b691ecdb41b6d0430.jpeg" alt=""></div>
-                    <div class="ph"><img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b5da419257a2f5a5c.jpeg" alt=""></div>
+                    <img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2bad50b295805908f2.jpeg">
+                    <img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b691ecdb41b6d0430.jpeg">
+                    <img src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b5da419257a2f5a5c.jpeg">
                   </div>
                   <div style="display:flex;gap:6px">
                     <button class="btn" data-learn="simon">Learn more</button>
@@ -258,8 +244,7 @@
             </div>
           </section>
 
-          <div class="pad" style="text-align:center;color:#5f676f;font-size:12px;font-weight:700;">Payments arranged after confirmation.</div>
-          <div id="thanks" class="toast">Thank you! Your request has been sent. We will confirm shortly.</div>
+          <footer>Payments arranged after confirmation.</footer>
         </div>
 
         <!-- RIGHT -->
@@ -320,15 +305,15 @@
   </div>
 
 <script>
-  /* ------- Config ------- */
   const webhookURL = "https://services.leadconnectorhq.com/hooks/ZOaFJ8FLtFptFJMy2ZSH/webhook-trigger/f540af18-28fb-4fdc-82cc-1a3a114d4142";
+  const TEAM_EMAIL = "concierge@nordicloft.no";
   const money = n => "kr " + n;
 
-  /* ------- Cart state ------- */
   const cart = new Map();
   const cartItems = document.getElementById("cartItems");
   const emptyNote = document.getElementById("emptyNote");
   const grandEl = document.getElementById("grand");
+
   function addLine({id,name,qty=1,unit_price=0,estimate=false}){
     const it = cart.get(id) || {id,name,qty:0,unit_price,estimate};
     it.qty += qty; it.name=name; it.unit_price=unit_price; it.estimate=estimate;
@@ -358,7 +343,7 @@
     emptyNote.style.display = cart.size ? "none":"block";
   }
 
-  /* ------- Groceries ------- */
+  /* Groceries */
   document.querySelectorAll(".chip").forEach(ch=>{
     ch.classList.remove("active");
     ch.addEventListener("click",()=>{
@@ -379,7 +364,7 @@
     document.getElementById("customGroceryName").value="";
   });
 
-  /* ------- Add-ons ------- */
+  /* Add-ons */
   document.getElementById("products").addEventListener("click",(e)=>{
     const card = e.target.closest(".p"); if(!card) return;
     const stepBtn = e.target.closest("[data-step]");
@@ -399,11 +384,9 @@
     }
   });
 
-  /* ------- Activities + Learn more ------- */
+  /* Activities + Learn more */
   const learnModal=document.getElementById("learnModal");
   function toggleLearn(open){ learnModal.classList.toggle("open", !!open); learnModal.setAttribute("aria-hidden", open? "false":"true"); }
-  window.toggleLearn=toggleLearn;
-
   document.getElementById("activityGrid").addEventListener("click",(e)=>{
     const addBtn=e.target.closest("[data-action=add-activity]");
     if(addBtn){
@@ -419,23 +402,24 @@
       const body= type==="ira"
        ? \`<p style="margin:0 0 8px;color:#6f7681">A private, cinematic photo session with <strong>Ira</strong> around Ålesund. Guidance, warm natural light and editorial framing.</p>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-            <img style="width:100%;height:140px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011302a7ea2ed2ffc83f.jpeg">
-            <img style="width:100%;height:140px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f901134ab728b08f9a0a93.jpeg">
-            <img style="width:100%;height:140px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011342c58c012d355c2b.jpeg">
+            <img style="width:100%;height:120px;object-fit:cover;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011302a7ea2ed2ffc83f.jpeg">
+            <img style="width:100%;height:120px;object-fit:cover;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f901134ab728b08f9a0a93.jpeg">
+            <img style="width:100%;height:120px;object-fit:cover;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011342c58c012d355c2b.jpeg">
           </div>\`
        : \`<p style="margin:0 0 8px;color:#6f7681">Head out with <strong>Simon</strong> for authentic fjord fishing. Explore coves, maybe spot seals, and take home prepared fish.</p>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-            <img style="width:100%;height:140px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2bad50b295805908f2.jpeg">
-            <img style="width:100%;height:140px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b691ecdb41b6d0430.jpeg">
-            <img style="width:100%;height:140px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b5da419257a2f5a5c.jpeg">
+            <img style="width:100%;height:120px;object-fit:cover;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2bad50b295805908f2.jpeg">
+            <img style="width:100%;height:120px;object-fit:cover;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b691ecdb41b6d0430.jpeg">
+            <img style="width:100%;height:120px;object-fit:cover;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b5da419257a2f5a5c.jpeg">
           </div>\`;
       document.getElementById("learnTitle").textContent=title;
       document.getElementById("learnBody").innerHTML=body;
       toggleLearn(true);
     }
   });
+  window.toggleLearn=toggleLearn;
 
-  /* ------- Summary modal + submit ------- */
+  /* Summary & submit */
   const summaryModal=document.getElementById("summaryModal");
   function toggleSummary(open){ summaryModal.classList.toggle("open", !!open); summaryModal.setAttribute("aria-hidden", open? "false":"true"); }
   document.getElementById("openSummary").addEventListener("click",()=>{
@@ -458,6 +442,39 @@
   });
   document.getElementById("closeSummary").addEventListener("click",()=>toggleSummary(false));
 
+  function emailText(payload){
+    const items = payload.items.map(i=>{
+      const unit = i.unit_price? (" @ kr "+i.unit_price):" (Request Quote)";
+      return " • "+i.name+" x"+i.qty+unit;
+    }).join("\\n");
+    return [
+      "Nordic Loft Ålesund — Concierge Order","",
+      "Guest: "+(payload.guest_name||""),"Email: "+(payload.email||""),"Phone: "+(payload.phone||""),"Arrival: "+(payload.arrival_date||""),"",
+      "Items:", items||" • (none)","",
+      "Shopping notes: "+(payload.concierge.shopping||""),"Activities notes: "+(payload.concierge.activities||""),"",
+      "Notes: "+(payload.notes||""),"","Total (priced items): kr "+(payload.total||0),"",
+      "Apartment: "+(payload.apartment||"Nordic Loft Ålesund"),"Created: "+new Date().toLocaleString()
+    ].join("\\n");
+  }
+  function emailHTML(payload){
+    const rows = payload.items.map(i=>{
+      const unit = i.unit_price? "kr "+i.unit_price : "Request Quote";
+      const sub  = i.unit_price? "kr "+(i.unit_price*i.qty): "-";
+      return \`<tr><td>\${i.name}</td><td>x\${i.qty}</td><td>\${unit}</td><td>\${sub}</td></tr>\`;
+    }).join("");
+    return \`<div style="font-family:Montserrat,Segoe UI,Roboto,Helvetica,Arial;color:#121418">
+      <h2>Nordic Loft Ålesund — Concierge Order</h2>
+      <p><strong>Guest:</strong> \${payload.guest_name||""}<br><strong>Email:</strong> \${payload.email||""}<br><strong>Phone:</strong> \${payload.phone||""}<br><strong>Arrival:</strong> \${payload.arrival_date||""}</p>
+      <table cellpadding="8" cellspacing="0" border="1" style="border-collapse:collapse;border-color:#e7dece;width:100%">
+        <thead><tr style="background:#f8f2e6"><th align="left">Item</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead>
+        <tbody>\${rows||"<tr><td colspan=4>(no items)</td></tr>"}</tbody>
+      </table>
+      <p><strong>Shopping notes:</strong> \${payload.concierge.shopping||"&nbsp;"}<br><strong>Activities notes:</strong> \${payload.concierge.activities||"&nbsp;"}</p>
+      <p><strong>Total (priced items):</strong> kr \${payload.total||0}</p>
+      <p><strong>Apartment:</strong> \${payload.apartment||"Nordic Loft Ålesund"}<br><strong>Created:</strong> \${new Date().toLocaleString()}</p>
+    </div>\`;
+  }
+
   document.getElementById("confirmSend").addEventListener("click", async ()=>{
     const payload = {
       apartment: document.getElementById("room").value || "Nordic Loft Ålesund",
@@ -472,13 +489,20 @@
       total: Array.from(cart.values()).reduce((s,i)=> s + (i.estimate?0:(i.unit_price||0)*i.qty), 0),
       created_at: new Date().toISOString()
     };
+    payload.email_summary = emailText(payload);
+    payload.email_summary_html = emailHTML(payload);
+    payload.email_to = TEAM_EMAIL;
 
     try{
       const res = await fetch(webhookURL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
       if(!res.ok) throw new Error("Network");
+      if(TEAM_EMAIL){
+        const subject=encodeURIComponent("Concierge Order — Nordic Loft Ålesund");
+        const body=encodeURIComponent(payload.email_summary);
+        window.open(\`mailto:\${TEAM_EMAIL}?subject=\${subject}&body=\${body}\`,"_blank");
+      }
+      alert("Order sent! We will confirm shortly.");
       toggleSummary(false);
-      document.getElementById("thanks").classList.add("show");
-      // reset some UI state
       cart.clear(); renderCart();
       document.querySelectorAll(".chip.active").forEach(c=>c.classList.remove("active"));
       document.getElementById("shoppingText").value="";
