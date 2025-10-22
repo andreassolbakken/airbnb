@@ -1,505 +1,348 @@
-<div id="o-uae-form"></div>
+<!-- Nordic Loft – Concierge Order Component -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-{% raw %}
-<script>
-(function(){
-  const mount = document.getElementById('o-uae-form');
-  let root; try { root = mount.attachShadow({mode:'open'}); } catch(e){ root = mount; }
-
-  /* ================== DATA ================== */
-  const PRODUCTS = [
-    { id:'6x150_B500', title:'6×150 mm (B500)', priceAED:960, unitsPerBox:8000, boxesPerPallet:36, lengthMM:150, shipNote:'Available from 1 Dec — ships then' },
-    { id:'6x200_B500', title:'6×200 mm (B500)', priceAED:780, unitsPerBox:6000, boxesPerPallet:36, lengthMM:200, shipNote:'Available from 1 Dec — ships then' },
-    { id:'8x150_B500', title:'8×150 mm (B500)', priceAED:650, unitsPerBox:5000, boxesPerPallet:32, lengthMM:150, shipNote:'Available from 1 Dec — ships then' },
-    { id:'8x200_B500', title:'8×200 mm (B500)', priceAED:490, unitsPerBox:3500, boxesPerPallet:32, lengthMM:200 },
-    { id:'8x230_B500', title:'8×230 mm (B500)', priceAED:525, unitsPerBox:3200, boxesPerPallet:32, lengthMM:230 },
-    { id:'10x230_B250',title:'10×230 mm (B250)', priceAED:360, unitsPerBox:2000, boxesPerPallet:32, lengthMM:230, shipNote:'Available from 1 Dec — ships then' },
-
-    /* HoReCa Paper Wrapped (available 1 Dec) */
-    { id:'OSR_8x230_B250_WP', title:'HoReCa Paper Wrapped — OSR 8×230 B250 WP', priceAED:0, unitsPerBox:2000, boxesPerPallet:32, lengthMM:230, shipNote:'Available from 1 Dec — ships then', horeca:true },
-
-    /* Retail (Dispenser) — adjust boxesPerPallet here if your sheet changes */
-    { id:'OSN_6x200_D50', title:'Retail — OSN 6×200 D50', priceAED:0, unitsPerBox:50,  boxesPerPallet:200, lengthMM:200, shipNote:'Available from 1 Dec — ships then', retail:true },
-    { id:'OSN_8x200_D30', title:'Retail — OSN 8×200 D30', priceAED:0, unitsPerBox:30,  boxesPerPallet:240, lengthMM:200, shipNote:'Available from 1 Dec — ships then', retail:true },
-    { id:'OSB_6x200_D50', title:'Retail — OSB 6×200 D50', priceAED:0, unitsPerBox:50,  boxesPerPallet:200, lengthMM:200, shipNote:'Available from 1 Dec — ships then', retail:true },
-    { id:'OSB_8x200_D30', title:'Retail — OSB 8×200 D30', priceAED:0, unitsPerBox:30,  boxesPerPallet:240, lengthMM:200, shipNote:'Available from 1 Dec — ships then', retail:true }
-  ];
-  const COLORS = ['Nature','Black'];
-  const SURCHARGE = { wrap:0.02, logo:0.01 };
-  const MOQ_PALLETS_FOR_LOGO = 3;
-
-  /* >>> Hard-wired webhook per your latest URL <<< */
-  const WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/dVdmanBYF90Y8ezmaUJW/webhook-trigger/80e29f97-0dcb-4772-9e8a-9583a4198dc3';
-
-  /* ================== STYLE ================== */
-  const style = document.createElement('style');
-  style.textContent = `
-  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap');
-  *{box-sizing:border-box}
-  .o-container{font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#0e1525;background:transparent;width:100%;overflow-x:hidden}
-  .o-wrap{max-width:1200px;margin:24px auto;padding:24px 16px}
-  @media(min-width:960px){.o-wrap{padding:32px}}
-
-  .o-pills{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}
-  .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:#f1f5f9;border:1px solid #e6ecf3;font-weight:700;font-size:12px;color:#0e1525}
-  .pill .flag{width:18px;height:12px;border-radius:2px;background:linear-gradient(90deg,#00732F 0 33.3%,#fff 33.3% 66.6%,#CE1126 66.6% 100%)}
-  .o-h1{margin:0 0 6px;font-size:26px;font-weight:900;letter-spacing:.2px}
-  @media(min-width:960px){.o-h1{font-size:30px}}
-  .o-sub{margin:0 0 12px;color:#334155}
-
-  /* layout: products left, form right on desktop */
-  .o-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:24px;align-items:start}
-  @media(max-width:1180px){.o-row{grid-template-columns:1fr}} /* form goes below on mobile */
-
-  .o-grid{display:grid;grid-template-columns:repeat(3,minmax(260px,1fr));gap:16px}
-  @media(max-width:1120px){.o-grid{grid-template-columns:repeat(2,minmax(260px,1fr))}}
-  @media(max-width:680px){.o-grid{grid-template-columns:1fr}}
-
-  .o-card{background:#fff;border:2px solid #e6ecf3;border-radius:20px;padding:16px;box-shadow:0 10px 24px rgba(18,38,63,.06);transition:.2s;border-color,.2s box-shadow;overflow:visible}
-  .o-card.active{border-color:#327A91; box-shadow:0 0 0 3px rgba(50,122,145,.12), 0 14px 30px rgba(18,38,63,.10)}
-  .o-title{margin:0 0 4px;font-weight:800;font-size:18px;color:#0c1323}
-  .o-muted{font-size:12px;color:#62708c}
-  .o-price{margin:10px 0 8px;font-weight:900;color:#327A91}
-  .o-ship{display:inline-block;margin-bottom:8px;padding:4px 8px;border-radius:999px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-weight:700;font-size:12px}
-
-  .o-subcard{border:1px solid #e6ecf3;border-radius:14px;padding:12px;margin-top:12px}
-  .o-subhead{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-weight:800}
-  .o-dot{width:10px;height:10px;border-radius:999px;border:1px solid #cbd6e2}
-  .o-dot.nature{background:#c8b091}
-  .o-dot.black{background:#111}
-
-  .o-opt{display:flex;gap:16px;align-items:flex-start;margin:8px 0 4px;flex-wrap:wrap}
-  .o-opt label{display:flex;gap:8px;align-items:flex-start;font-size:13px}
-  .o-opt input[type=checkbox]{width:16px;height:16px;accent-color:#327A91}
-  .o-warn{color:#d92d20;font-size:12px;margin:4px 0 0}
-  .o-warn.pop{animation:o-pop .35s ease-out}
-  @keyframes o-pop{0%{transform:scale(.98);opacity:.6}60%{transform:scale(1.02);opacity:1}100%{transform:scale(1)}}
-
-  .qtyrow{display:flex;align-items:center;gap:12px;margin-top:8px;white-space:nowrap}
-  .qtylabel{flex:0 0 140px;min-width:140px;color:#6b778c;font-size:12px}
-  .step{display:flex;align-items:center;gap:10px;flex:0 0 auto}
-  .btn{width:36px;height:36px;flex:0 0 36px;border-radius:999px;border:1px solid #e6ecf3;background:#f4f7fb;font-weight:800;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none}
-  .btn:focus-visible{outline:2px solid rgba(50,122,145,.35)}
-  .val{min-width:56px;height:40px;padding:0 12px;display:flex;align-items:center;justify-content:center;border-radius:999px;border:2px solid #327A91;background:#f3fafc;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.2px;font-size:16px}
-  .val.pulse{animation:o-pulse .12s ease-out}
-  @keyframes o-pulse{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
-  @media(max-width:480px){
-    .qtyrow{flex-wrap:wrap}
-    .qtylabel{flex:1 1 100%;min-width:0;margin-bottom:4px}
-    .step{gap:8px}
+<style>
+  :root{
+    --bg:#0b1226;           /* page bg behind section if you need */
+    --card:#ffffff;
+    --ink:#0e1428;
+    --muted:#5f6b85;
+    --brand:#1d78ff;
+    --ring:#1d78ff33;
+    --border:#e6ecf3;
+    --soft:#f5f7fb;
+    --accent:#f0f4ff;
+    --ok:#0f9d58;
   }
 
-  /* RIGHT COLUMN (sticky) */
-  .o-side{background:#fff;border:1px solid #e8eef5;border-radius:22px;padding:18px;box-shadow:0 14px 30px rgba(18,38,63,.08);position:sticky;top:16px}
-  .o-line{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin:6px 0}
-  .o-total{font-size:18px;font-weight:900}
-  .o-div{height:1px;background:#e6ecf3;margin:10px 0}
-  .o-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(50,122,145,.12);color:#1e5f70;font-weight:700;font-size:12px}
+  .nl-wrap{font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
+  .nl-container{max-width:1100px;margin:28px auto;padding:8px 16px} /* ↓ tighter */
+  @media(min-width:960px){.nl-container{padding:8px 24px}}
 
-  .o-field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
-  .o-label{font-size:13px;color:#6b778c}
-  .o-input,.o-select,.o-textarea{background:#fff;color:#0c1323;border:1px solid #dbe5ee;border-radius:12px;padding:12px;font:inherit}
-  .o-input:focus,.o-select:focus,.o-textarea:focus{outline:none;box-shadow:0 0 0 4px rgba(50,122,145,.18);border-color:rgba(50,122,145,.5)}
-  .o-submit{width:100%;padding:14px;border-radius:14px;border:0;cursor:pointer;font-weight:900;background:linear-gradient(135deg,#489bb2,#327A91);color:#fff;box-shadow:0 10px 18px rgba(50,122,145,.18)}
-  .o-hidden{display:none}
+  .nl-h1{margin:0 0 8px;font-weight:800;letter-spacing:.2px;font-size:28px}
+  .nl-sub{margin:0 0 8px;color:var(--muted)}
+  .nl-note{margin:10px 0 18px;padding:12px 14px;border-radius:14px;background:#f5f7fb;border:1px solid var(--border);color:var(--ink)}
 
-  /* order summary list in sidebar */
-  .sum-list{margin:8px 0 6px;padding:0;list-style:none;max-height:220px;overflow:auto}
-  .sum-item{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed #e6ecf3}
-  .sum-chip{display:inline-flex;gap:6px;align-items:center;padding:2px 8px;border-radius:999px;background:#f1f5f9;border:1px solid #e6ecf3;font-size:11px}
-  `;
+  /* grid */
+  .nl-grid{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:14px}
+  @media(max-width:1120px){.nl-grid{grid-template-columns:repeat(3,minmax(220px,1fr))}}
+  @media(max-width:820px){.nl-grid{grid-template-columns:repeat(2,minmax(200px,1fr))}}
+  @media(max-width:540px){.nl-grid{grid-template-columns:1fr}}
 
-  /* ================== STATE ================== */
-  const cart = {};
-  COLORS.forEach(c=>{
-    PRODUCTS.forEach(p=>{
-      cart[p.id] ??= {}; cart[p.id][c] = { boxes:0, pallets:0, wrap:false, logo:false };
-    });
-  });
-
-  const clamp = (v, lo, hi)=>Math.max(lo, Math.min(hi, v|0));
-  const fmtAED = (n)=>`AED ${n.toLocaleString('en-AE',{maximumFractionDigits:0})}`;
-  const floor = Math.floor;
-
-  function logoAllowed(p, color){
-    if(p.lengthMM === 150) return false;
-    const need = (p.boxesPerPallet||0) * MOQ_PALLETS_FOR_LOGO;
-    return cart[p.id][color].boxes >= need;
+  /* product card */
+  .nl-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:14px; /* tighter */
+    display:flex;flex-direction:column;gap:10px;
+    box-shadow:0 8px 18px rgba(18,38,63,.06);
   }
-  function logoRemaining(p, color){
-    const need = (p.boxesPerPallet||0) * MOQ_PALLETS_FOR_LOGO;
-    const have = cart[p.id][color].boxes;
-    const rem = Math.max(0, need - have);
-    return { rem, palletsApprox: (p.boxesPerPallet? Math.ceil(rem/(p.boxesPerPallet)):0) };
-  }
+  .nl-title{margin:0;font-weight:800;font-size:16px}
+  .nl-desc{margin:0;color:var(--muted);font-size:13px}
+  .nl-price{font-weight:800}
+  .nl-line{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px}
 
-  function syncFromBoxes(p,color){
-    const st = cart[p.id][color];
-    st.boxes = clamp(st.boxes, 0, 999);
-    st.pallets = (p.boxesPerPallet? floor(st.boxes / p.boxesPerPallet) : 0);
-  }
-  function syncFromPallets(p,color){
-    const st = cart[p.id][color];
-    const maxPal = (p.boxesPerPallet? floor(999 / p.boxesPerPallet) : 0);
-    st.pallets = clamp(st.pallets, 0, maxPal);
-    if(p.boxesPerPallet) st.boxes = st.pallets * p.boxesPerPallet;
-  }
+  /* qty row + add button, fits on one line at desktop */
+  .nl-qtyrow{display:flex;align-items:center;gap:10px;margin-top:6px}
+  .nl-step{display:flex;align-items:center;gap:8px}
+  .nl-btn{width:36px;height:36px;border:1px solid var(--border);background:var(--soft);border-radius:12px;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none}
+  .nl-val{min-width:40px;height:36px;padding:0 10px;border-radius:12px;border:2px solid var(--brand);display:flex;align-items:center;justify-content:center;font-weight:800;background:#f7fbff}
+  .nl-add{margin-left:auto;padding:10px 14px;border-radius:12px;border:0;background:linear-gradient(135deg,#7fb2ff,#1d78ff);color:#fff;font-weight:800;cursor:pointer;box-shadow:0 6px 12px rgba(29,120,255,.22)}
+  .nl-add:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
 
-  function surchargeFor(p,color){
-    const st = cart[p.id][color];
-    const units = p.unitsPerBox||0;
-    let perStraw = 0;
-    if(st.wrap && p.lengthMM!==150) perStraw += SURCHARGE.wrap;
-    if(st.logo && logoAllowed(p,color)) perStraw += SURCHARGE.logo;
-    return perStraw * units * st.boxes;
+  /* cart summary / form */
+  .nl-cart{
+    margin-top:22px; /* tighter */
+    background:#fff;border:1px solid var(--border);border-radius:18px;padding:16px;
+    box-shadow:0 8px 18px rgba(18,38,63,.06);
   }
+  .nl-table{width:100%;border-collapse:collapse;font-size:14px}
+  .nl-table th,.nl-table td{padding:8px 6px;border-bottom:1px dashed var(--border);vertical-align:top}
+  .nl-right{text-align:right}
+  .nl-total{font-weight:800}
+  .nl-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  @media(max-width:720px){.nl-form{grid-template-columns:1fr}}
+  .nl-field{display:flex;flex-direction:column;gap:6px}
+  .nl-label{font-size:12px;color:var(--muted)}
+  .nl-input,.nl-textarea{border:1px solid #dbe5ee;border-radius:12px;padding:12px;font:inherit}
+  .nl-textarea{min-height:72px}
+  .nl-submit{margin-top:8px;width:100%;padding:14px;border-radius:14px;border:0;cursor:pointer;font-weight:900;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 10px 18px rgba(34,197,94,.18)}
+  .nl-ok{display:none;margin-top:8px;color:var(--ok);font-weight:700}
+  .nl-err{display:none;margin-top:8px;color:#d92d20;font-weight:700}
+</style>
 
-  function totals(){
-    let boxes=0, sum=0;
-    PRODUCTS.forEach(p=>COLORS.forEach(c=>{
-      const st = cart[p.id][c];
-      boxes += st.boxes;
-      sum += (st.boxes * p.priceAED) + surchargeFor(p,c);
-    }));
-    return { boxes, sum };
-  }
+<section class="nl-wrap" id="nl-order">
+  <div class="nl-container">
+    <h2 class="nl-h1">Concierge add-ons</h2>
+    <p class="nl-sub">Pick extras for your stay. Prices in NOK.</p>
+    <div class="nl-note">Payments are arranged after confirmation.</div>
 
-  /* ================== UI ================== */
-  const container = document.createElement('div');
-  container.className = 'o-container';
-  container.innerHTML = `
-    <div class="o-wrap">
-      <div class="o-pills">
-        <span class="pill"><span class="flag"></span> Ships from Dubai</span>
-        <span class="pill">Currency: AED</span>
-        <span class="pill">+5% VAT</span>
-      </div>
-      <h2 class="o-h1">UAE Wholesale Order – UAE Warehouse</h2>
-      <p class="o-sub">For HoReCa and Distributors • Prices in AED + 5% VAT</p>
-      <ul class="o-sub" style="margin:0 0 12px 18px">
-        <li>Optional: Paper Wrapping (+0.02 AED/straw)</li>
-        <li>Optional: Custom Logo (+0.01 AED/straw, MOQ 3 pallets)</li>
-      </ul>
-      <p class="o-sub" style="margin-bottom:18px">Volume discounts (if applicable) will be applied automatically and shown in your order confirmation email.<br><b>Get started easily</b> — place your order through this order portal today!</p>
+    <!-- PRODUCT GRID -->
+    <div class="nl-grid" id="nl-grid"></div>
 
-      <div class="o-row">
-        <!-- PRODUCTS LEFT -->
-        <div>
-          <div class="o-grid" id="grid"></div>
+    <!-- CART / SUBMIT -->
+    <div class="nl-cart" id="nl-cart">
+      <h3 class="nl-title" style="margin-bottom:6px">Your selection</h3>
+      <table class="nl-table" id="nl-table">
+        <thead>
+          <tr><th style="width:60%">Item</th><th class="nl-right">Qty</th><th class="nl-right">Unit</th><th class="nl-right">Subtotal</th></tr>
+        </thead>
+        <tbody id="nl-rows">
+          <tr><td colspan="4" style="color:var(--muted);padding:10px 6px">No items yet.</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="3" class="nl-right nl-total">Total</td><td class="nl-right nl-total" id="nl-total">kr 0</td></tr>
+        </tfoot>
+      </table>
+
+      <!-- FORM -->
+      <div class="nl-form">
+        <div class="nl-field">
+          <label class="nl-label">Apartment</label>
+          <input id="apartment" class="nl-input" value="Nordic Loft Ålesund">
         </div>
-
-        <!-- ORDER FORM RIGHT -->
-        <aside class="o-side">
-          <div class="o-line"><div>Subtotal</div><div id="subtotal">AED 0</div></div>
-          <div class="o-line"><div>Items (boxes)</div><div id="items">0</div></div>
-          <div class="o-div"></div>
-
-          <!-- Live order summary -->
-          <div class="o-line" style="font-weight:800;margin:4px 0 0">Order summary</div>
-          <ul id="sumList" class="sum-list"></ul>
-          <div class="o-div"></div>
-
-          <div class="o-line o-total"><div>Total</div><div id="total">AED 0</div></div>
-          <div class="o-div"></div>
-
-          <div class="o-field"><label class="o-label">Full name</label><input class="o-input" id="f_name" placeholder="Full name"></div>
-          <div class="o-field"><label class="o-label">Email</label><input class="o-input" id="f_email" placeholder="name@company.com"></div>
-          <div class="o-field"><label class="o-label">WhatsApp (optional)</label><input class="o-input" id="f_whatsapp" placeholder="9715XXXXXXXX"></div>
-          <div class="o-field"><label class="o-label">Company</label><input class="o-input" id="f_company" placeholder="Company name"></div>
-
-          <div class="o-field"><label class="o-label">Delivery Address (Dubai)</label><input class="o-input" id="f_address" placeholder="Street, building, apt/floor"></div>
-          <div class="o-field"><label class="o-label">District</label>
-            <select class="o-select" id="f_district">
-              <option value="">Select area</option><option>Dubai Marina</option><option>JLT</option><option>Business Bay</option><option>Jebel Ali</option><option>Deira</option><option>Other</option>
-            </select>
-          </div>
-
-          <div class="o-field"><label class="o-label"><input type="checkbox" id="f_diff" style="margin-right:8px"> Deliver to a different recipient & address</label></div>
-          <div id="diffWrap" class="o-hidden">
-            <div class="o-field"><label class="o-label">Recipient name</label><input class="o-input" id="d_name" placeholder="Recipient full name"></div>
-            <div class="o-field"><label class="o-label">Recipient phone</label><input class="o-input" id="d_phone" placeholder="9715XXXXXXXX"></div>
-            <div class="o-field"><label class="o-label">Recipient company (optional)</label><input class="o-input" id="d_company" placeholder="Company"></div>
-            <div class="o-field"><label class="o-label">Recipient address</label><input class="o-input" id="d_address" placeholder="Street, building, apt/floor"></div>
-            <div class="o-field"><label class="o-label">Recipient district</label><input class="o-input" id="d_district" placeholder="Area / district"></div>
-          </div>
-
-          <div class="o-field"><label class="o-label">Shipping</label>
-            <select class="o-select" id="f_shipping">
-              <option value="pickup">Pick up (Dubai warehouse)</option>
-              <option value="delivery">Delivery</option>
-            </select>
-          </div>
-
-          <div class="o-field"><label class="o-label">Message (optional)</label>
-            <textarea class="o-textarea" id="f_msg" placeholder="Notes, PO number, timing, etc."></textarea>
-          </div>
-
-          <button class="o-submit" id="submitBtn">Submit Order</button>
-          <div id="formErr" class="o-warn" style="display:none;margin-top:8px"></div>
-          <div id="sentOk" class="o-badge" style="display:none;margin-top:8px">Order submitted</div>
-        </aside>
+        <div class="nl-field">
+          <label class="nl-label">Arrival date</label>
+          <input id="arrival_date" type="date" class="nl-input">
+        </div>
+        <div class="nl-field">
+          <label class="nl-label">Guest name</label>
+          <input id="guest_name" class="nl-input" placeholder="Full name">
+        </div>
+        <div class="nl-field">
+          <label class="nl-label">Email</label>
+          <input id="email" type="email" class="nl-input" placeholder="name@email.com">
+        </div>
+        <div class="nl-field">
+          <label class="nl-label">Phone</label>
+          <input id="phone" class="nl-input" placeholder="47XXXXXXXX">
+        </div>
+        <div class="nl-field">
+          <label class="nl-label">Special notes</label>
+          <textarea id="notes" class="nl-textarea" placeholder="Preferred time, pickup, celebration, etc."></textarea>
+        </div>
+        <div class="nl-field" style="grid-column:1 / -1">
+          <label class="nl-label">Concierge – shopping (optional)</label>
+          <input id="concierge_shopping" class="nl-input" placeholder="Grocery list, flowers, cake, etc.">
+        </div>
+        <div class="nl-field" style="grid-column:1 / -1">
+          <label class="nl-label">Concierge – activities (optional)</label>
+          <input id="concierge_activities" class="nl-input" placeholder="Boat trip, photoshoot, dining, etc.">
+        </div>
       </div>
+
+      <button id="submit-order" class="nl-submit">Send request</button>
+      <div id="nl-ok" class="nl-ok">Thanks! Your request was sent.</div>
+      <div id="nl-err" class="nl-err">Sorry, we could not send your request. Please try again.</div>
     </div>
-  `;
+  </div>
+</section>
 
-  function makeStepper(initial, onChange){
-    const wrap = document.createElement('div');
-    wrap.className = 'step';
-    const minus = document.createElement('button'); minus.className='btn'; minus.type='button'; minus.textContent='–';
-    const val = document.createElement('div'); val.className='val'; val.textContent=initial;
-    const plus = document.createElement('button'); plus.className='btn'; plus.type='button'; plus.textContent='+';
-    const pulse=()=>{ val.classList.add('pulse'); setTimeout(()=>val.classList.remove('pulse'),130); };
-    minus.addEventListener('click',()=>onChange(-1,(n)=>{val.textContent=n; pulse();}));
-    plus.addEventListener('click',()=>onChange(+1,(n)=>{val.textContent=n; pulse();}));
-    wrap.append(minus,val,plus);
-    return { el:wrap, set:(n)=>val.textContent=n };
-  }
+<script>
+/* ================== CONFIG ================== */
+const WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/dVdmanBYF90Y8ezmaUJW/webhook-trigger/80e29f97-0dcb-4772-9e8a-9583a4198dc3';
+const CURRENCY = 'NOK';
 
-  function renderProducts(){
-    const grid = container.querySelector('#grid');
-    grid.innerHTML = '';
+/* Demo products – edit freely */
+const PRODUCTS = [
+  { id:'glass',  title:'Norwegian “Norge” Glass (each)', desc:'Elegant engraved tumbler.', price:299 },
+  { id:'book1',  title:'Questions for Humans — Couples', desc:'Great icebreaker deck.', price:299 },
+  { id:'book2',  title:'Questions for Humans — Friends', desc:'Fun prompts for friends.', price:299 },
+  { id:'tour',   title:'Seaside photo experience with Ira', desc:'Warm, cinematic photos.', price:1590 },
+  { id:'fishing',title:'Fjord fishing with Simon', desc:'Explore secret spots.', price:1990 },
+  { id:'cake',   title:'Celebration cake (8–10 ppl)', desc:'Delivered fresh.', price:590 },
+  { id:'flowers',title:'Seasonal flower bouquet', desc:'Locally arranged.', price:490 },
+  { id:'prosecco',title:'Prosecco on arrival', desc:'Chilled bottle.', price:350 }
+];
 
-    PRODUCTS.forEach(p=>{
-      const card = document.createElement('div');
-      card.className = 'o-card';
-      card.dataset.pid = p.id;
+/* ================== STATE ================== */
+const CART = new Map(); // id -> {id,title,qty,price,addOns?}
 
-      card.innerHTML = `
-        <h3 class="o-title">${p.title}</h3>
-        <div class="o-muted">
-          <div>Per box: ${ (p.unitsPerBox||0).toLocaleString() } straws</div>
-          ${ p.boxesPerPallet ? `<div>Per pallet: ${ ((p.unitsPerBox||0)*(p.boxesPerPallet||0)).toLocaleString() } straws — <b>${p.boxesPerPallet}</b> boxes</div>` : '' }
-        </div>
-        <div class="o-price">${fmtAED(p.priceAED)} <span class="o-muted">/ box</span></div>
-        ${ p.shipNote ? `<span class="o-ship">${p.shipNote}</span>` : '' }
-      `;
+/* ============== HELPERS ============== */
+const money = n => new Intl.NumberFormat('nb-NO',{style:'currency',currency:CURRENCY,maximumFractionDigits:0}).format(n);
+const sum = (arr, sel=x=>x) => arr.reduce((a,b)=>a+sel(b),0);
 
-      COLORS.forEach(color=>{
-        const st = cart[p.id][color];
-        const sub = document.createElement('div');
-        sub.className = 'o-subcard';
-
-        const dot = (color==='Nature') ? 'nature' : 'black';
-        const subHead = document.createElement('div');
-        subHead.className='o-subhead';
-        subHead.innerHTML = `<div class="o-dot ${dot}"></div><div style="font-weight:800">${color}</div>`;
-        sub.appendChild(subHead);
-
-        const opt = document.createElement('div'); opt.className='o-opt';
-
-        const wrapDisabled = (p.lengthMM===150);
-        const logoHard = (p.lengthMM===150);
-
-        const wrapLbl = document.createElement('label');
-        wrapLbl.innerHTML = `<input type="checkbox" ${wrapDisabled?'disabled':''} ${st.wrap?'checked':''}> <div><b>Paper Wrapping</b> (+0.02 AED/straw)</div>`;
-        if(wrapDisabled) wrapLbl.style.opacity='.5';
-
-        const logoLbl = document.createElement('label');
-        const allowLogoNow = !logoHard && logoAllowed(p,color);
-        logoLbl.innerHTML = `<input type="checkbox" ${(allowLogoNow?'':'disabled')} ${st.logo?'checked':''}> <div><b>Custom Logo</b> (+0.01 AED/straw)</div>`;
-        if(logoHard || !allowLogoNow) logoLbl.style.opacity='.5';
-
-        opt.append(wrapLbl, logoLbl);
-        sub.appendChild(opt);
-
-        const warn = document.createElement('div'); warn.className='o-warn';
-        const setWarn = ()=>{
-          if(p.lengthMM===150){
-            warn.textContent = 'Paper Wrapping & Custom Logo not available for 150 mm.';
-            warn.style.display='block';
-          } else {
-            const {rem, palletsApprox} = logoRemaining(p,color);
-            if(rem>0){ warn.textContent = `Remaining ${rem} box(es) (~${palletsApprox} pallets) to qualify for Custom Logo.`; warn.style.display='block'; }
-            else { warn.textContent=''; warn.style.display='none'; }
-          }
-        };
-        setWarn();
-        sub.appendChild(warn);
-
-        const rowB = document.createElement('div'); rowB.className='qtyrow';
-        const labB = document.createElement('div'); labB.className='qtylabel'; labB.textContent='Quantity (boxes)';
-        const stepB = makeStepper(st.boxes,(delta,reflect)=>{
-          st.boxes = clamp(st.boxes + delta, 0, 999);
-          syncFromBoxes(p,color);
-          reflect(st.boxes);
-          stepP.set(st.pallets);
-          updateCardActive(p.id); refreshTotals(); renderSummary();
-          const allow = !logoHard && logoAllowed(p,color);
-          const logoInput = logoLbl.querySelector('input');
-          logoInput.disabled = !allow; logoLbl.style.opacity = allow ? '1' : '.5';
-          setWarn();
-        });
-        rowB.append(labB, stepB.el);
-
-        const rowP = document.createElement('div'); rowP.className='qtyrow';
-        const labP = document.createElement('div'); labP.className='qtylabel'; labP.textContent='Quantity (pallets)';
-        const stepP = makeStepper(st.pallets,(delta,reflect)=>{
-          st.pallets = st.pallets + delta;
-          syncFromPallets(p,color);
-          reflect(st.pallets);
-          stepB.set(st.boxes);
-          updateCardActive(p.id); refreshTotals(); renderSummary();
-          const allow = !logoHard && logoAllowed(p,color);
-          const logoInput = logoLbl.querySelector('input');
-          logoInput.disabled = !allow; logoLbl.style.opacity = allow ? '1' : '.5';
-          setWarn();
-        });
-        rowP.append(labP, stepP.el);
-
-        sub.append(rowB, rowP);
-
-        // Wire options
-        const wrapInput = wrapLbl.querySelector('input');
-        const logoInput = logoLbl.querySelector('input');
-        wrapInput.addEventListener('change', e=>{ st.wrap=!!e.target.checked; refreshTotals(); renderSummary(); });
-        logoInput.addEventListener('change', e=>{ st.logo=!!e.target.checked; refreshTotals(); renderSummary(); });
-
-        card.appendChild(sub);
-      });
-
-      grid.appendChild(card);
-      updateCardActive(p.id);
+/* Build human-readable order summary for emails */
+function buildOrderSummary(payload){
+  const lines = [];
+  lines.push(`Apartment: ${payload.apartment}`);
+  lines.push(`Guest: ${payload.guest_name}  •  Phone: ${payload.phone}`);
+  lines.push(`Email: ${payload.email}`);
+  if (payload.arrival_date) lines.push(`Arrival: ${payload.arrival_date}`);
+  lines.push('');
+  lines.push('Items:');
+  if (!payload.items.length) {
+    lines.push('  (none)');
+  } else {
+    payload.items.forEach((it, i) => {
+      const addOns = (it.add_ons && it.add_ons.length) ? `  [${it.add_ons.join(', ')}]` : '';
+      lines.push(`  ${i+1}. ${it.qty} × ${it.title} — ${money(it.subtotal)}${addOns}`);
     });
   }
-
-  function updateCardActive(pid){
-    const el = container.querySelector(`.o-card[data-pid="${pid}"]`);
-    if(!el) return;
-    const any = COLORS.some(c=>cart[pid][c].boxes>0 || cart[pid][c].pallets>0);
-    el.classList.toggle('active', any);
+  lines.push('');
+  lines.push(`Subtotal: ${money(sum(payload.items, x=>x.subtotal))}`);
+  lines.push(`Total:    ${money(payload.total)} (${payload.currency})`);
+  if (payload.notes) { lines.push(''); lines.push('Notes:'); lines.push(`  ${payload.notes}`); }
+  if (payload.concierge?.shopping || payload.concierge?.activities) {
+    lines.push(''); lines.push('Concierge:');
+    if (payload.concierge.shopping)  lines.push(`  Shopping: ${payload.concierge.shopping}`);
+    if (payload.concierge.activities) lines.push(`  Activities: ${payload.concierge.activities}`);
   }
+  return lines.join('\n');
+}
 
-  function refreshTotals(){
-    const t = totals();
-    container.querySelector('#subtotal').textContent = fmtAED(Math.round(t.sum));
-    container.querySelector('#items').textContent = t.boxes.toLocaleString();
-    container.querySelector('#total').textContent = fmtAED(Math.round(t.sum));
-  }
-
-  /* =========== ORDER SUMMARY (SIDEBAR) =========== */
-  function buildLineObjects(){
-    const out=[];
-    PRODUCTS.forEach(p=>COLORS.forEach(c=>{
-      const st = cart[p.id][c]; if(!st.boxes && !st.pallets) return;
-      const wrapAvail = p.lengthMM!==150;
-      const canLogo = wrapAvail && logoAllowed(p,c);
-      out.push({
-        title:p.title, color:c, boxes:st.boxes, pallets:st.pallets, price:p.priceAED,
-        wrap: wrapAvail ? (st.wrap?'Yes':'No') : 'N/A',
-        logo: wrapAvail ? (st.logo ? (canLogo?'Yes':'No (below MOQ)') : 'No') : 'N/A'
-      });
-    }));
-    return out;
-  }
-
-  function renderSummary(){
-    const list = container.querySelector('#sumList');
-    const lines = buildLineObjects();
-    list.innerHTML = '';
-    if(lines.length===0){
-      list.innerHTML = '<li class="sum-item" style="border-bottom:0;color:#6b778c">No items yet.</li>';
-      return;
-    }
-    lines.forEach(L=>{
-      const li = document.createElement('li'); li.className='sum-item';
-      li.innerHTML = `
-        <div style="flex:1 1 auto;min-width:0">
-          <div style="font-weight:800">${L.title} <span class="sum-chip">${L.color}</span></div>
-          <div class="o-muted">Boxes: <b>${L.boxes}</b> • Pallets: <b>${L.pallets}</b> • Price: <b>AED ${L.price}/box</b></div>
-          <div class="o-muted">Wrap: <b>${L.wrap}</b> • Logo: <b>${L.logo}</b></div>
+/* ============== RENDER PRODUCTS ============== */
+const grid = document.getElementById('nl-grid');
+function renderProducts(){
+  grid.innerHTML = '';
+  PRODUCTS.forEach(p=>{
+    const card = document.createElement('div');
+    card.className = 'nl-card';
+    card.innerHTML = `
+      <div>
+        <div class="nl-line">
+          <h3 class="nl-title">${p.title}</h3>
+          <div class="nl-price">${money(p.price)}</div>
         </div>
-      `;
-      list.appendChild(li);
+        <p class="nl-desc">${p.desc || ''}</p>
+      </div>
+      <div class="nl-qtyrow">
+        <div class="nl-step">
+          <button class="nl-btn" data-act="minus">−</button>
+          <div class="nl-val" data-val>0</div>
+          <button class="nl-btn" data-act="plus">+</button>
+        </div>
+        <button class="nl-add" data-add>Add</button>
+      </div>
+    `;
+    const valEl = card.querySelector('[data-val]');
+    const minus = card.querySelector('[data-act="minus"]');
+    const plus  = card.querySelector('[data-act="plus"]');
+    const add   = card.querySelector('[data-add]');
+
+    let qty = 0;
+    const setQty = q => { qty = Math.max(0, Math.min(999,q)); valEl.textContent = qty; add.disabled = qty===0; };
+
+    minus.addEventListener('click', ()=> setQty(qty-1));
+    plus .addEventListener('click', ()=> setQty(qty+1));
+    add  .addEventListener('click', ()=>{
+      if (qty<=0) return;
+      const existing = CART.get(p.id) || { id:p.id, title:p.title, qty:0, price:p.price, addOns:[] };
+      existing.qty += qty;
+      CART.set(p.id, existing);
+      setQty(0);
+      renderCart();
     });
-  }
 
-  /* ================== SUBMIT ================== */
-  function buildLinesText(){
-    return buildLineObjects().map(L=>`${L.title} — ${L.color}: ${L.boxes} box(es) (${L.pallets} pallet(s)), AED ${L.price}/box, Wrap: ${L.wrap}, Logo: ${L.logo}`);
-  }
-
-  function payload(){
-    const t = totals();
-    const f = id => container.querySelector('#'+id)?.value?.trim() || '';
-    const diff = !!container.querySelector('#f_diff')?.checked;
-
-    // Build email subject + summary
-    const lineStrings = buildLinesText();
-    const subjectName = f('f_company') || f('f_name') || 'New UAE Wholesale Order';
-    const email_subject = `UAE Wholesale Order — ${subjectName} — ${t.boxes} box(es), ${fmtAED(Math.round(t.sum))}`;
-    const email_summary = [
-      `Customer: ${f('f_name')} (${f('f_email')})`,
-      f('f_company') ? `Company: ${f('f_company')}` : null,
-      `Shipping: ${f('f_shipping') || 'pickup'}`,
-      `Subtotal: ${fmtAED(Math.round(t.sum))}`,
-      `Items (boxes): ${t.boxes}`,
-      'Lines:',
-      ...lineStrings.map(s => '• ' + s)
-    ].filter(Boolean).join('\n');
-
-    return {
-      source:'UAE Wholesale Order Portal',
-      email_subject,
-      email_summary,
-      items_boxes: t.boxes,
-      subtotal_aed: Math.round(t.sum),
-      shipping: f('f_shipping'),
-      customer:{
-        name:f('f_name'), email:f('f_email'), whatsapp:f('f_whatsapp'),
-        company:f('f_company'), address:f('f_address'), district:f('f_district'),
-        message:f('f_msg')
-      },
-      deliver_to_different: diff ? {
-        name:f('d_name'), phone:f('d_phone'), company:f('d_company'),
-        address:f('d_address'), district:f('d_district')
-      } : null,
-      lines: lineStrings,
-      cart
-    };
-  }
-
-  async function submitOrder(){
-    const err = container.querySelector('#formErr');
-    const ok  = container.querySelector('#sentOk');
-    err.style.display='none'; ok.style.display='none';
-
-    const p = payload();
-    if(!p.customer.name || !p.customer.email){
-      err.textContent='Please fill in name and email.'; err.style.display='block'; return;
-    }
-    if(p.items_boxes<=0){
-      err.textContent='Please add at least 1 box to your order.'; err.style.display='block'; return;
-    }
-
-    try{
-      const r = await fetch(WEBHOOK_URL,{
-        method:'POST',
-        headers:{
-          'Content-Type':'application/json',
-          // Some endpoints require this to avoid CORS preflight issues; harmless if ignored:
-          'Accept':'application/json, text/plain, */*'
-        },
-        body:JSON.stringify(p)
-      });
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      ok.style.display='inline-block';
-    }catch(e){
-      err.textContent='Could not submit order. Please try again.'; err.style.display='block';
-    }
-  }
-
-  /* ================== INIT ================== */
-  root.appendChild(style);
-  root.appendChild(container);
-
-  renderProducts();
-  refreshTotals();
-  renderSummary();
-
-  container.querySelector('#submitBtn').addEventListener('click', submitOrder);
-  container.querySelector('#f_diff').addEventListener('change', (e)=>{
-    container.querySelector('#diffWrap').classList.toggle('o-hidden', !e.target.checked);
+    grid.appendChild(card);
   });
-})();
+}
+
+/* ============== RENDER CART ============== */
+const rowsEl = document.getElementById('nl-rows');
+const totalEl = document.getElementById('nl-total');
+
+function renderCart(){
+  const items = Array.from(CART.values()).filter(i=>i.qty>0);
+  rowsEl.innerHTML = '';
+  if (!items.length){
+    rowsEl.innerHTML = '<tr><td colspan="4" style="color:var(--muted);padding:10px 6px">No items yet.</td></tr>';
+  } else {
+    items.forEach(it=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${it.title}</td>
+        <td class="nl-right">${it.qty}</td>
+        <td class="nl-right">${money(it.price)}</td>
+        <td class="nl-right">${money(it.qty*it.price)}</td>
+      `;
+      rowsEl.appendChild(tr);
+    });
+  }
+  const total = sum(items, x=>x.qty*x.price);
+  totalEl.textContent = money(total);
+}
+
+/* ============== FORM / SUBMIT TO WEBHOOK ============== */
+function getFormValues(){
+  return {
+    apartment:    document.querySelector('#apartment')?.value || 'Nordic Loft Ålesund',
+    guest_name:   document.querySelector('#guest_name')?.value?.trim() || '',
+    email:        document.querySelector('#email')?.value?.trim() || '',
+    phone:        document.querySelector('#phone')?.value?.trim() || '',
+    arrival_date: document.querySelector('#arrival_date')?.value || '',
+    notes:        document.querySelector('#notes')?.value?.trim() || '',
+    concierge: {
+      shopping:   document.querySelector('#concierge_shopping')?.value?.trim() || '',
+      activities: document.querySelector('#concierge_activities')?.value?.trim() || ''
+    }
+  };
+}
+
+function buildPayload(){
+  const form = getFormValues();
+  const items = Array.from(CART.values()).filter(i=>i.qty>0).map(it=>({
+    id: it.id,
+    title: it.title,
+    qty: it.qty,
+    unit_price: it.price,
+    subtotal: it.qty * it.price,
+    add_ons: it.addOns || []
+  }));
+  const total = sum(items, x=>x.subtotal);
+
+  const payload = {
+    apartment:   form.apartment,
+    guest_name:  form.guest_name,
+    email:       form.email,
+    phone:       form.phone,
+    arrival_date:form.arrival_date,
+    notes:       form.notes,
+    concierge:   { shopping: form.concierge.shopping, activities: form.concierge.activities },
+    items,
+    currency:    CURRENCY,
+    total,
+    created_at:  new Date().toISOString()
+  };
+
+  payload.order_summary = buildOrderSummary(payload);
+  payload.email_subject = `New order — ${form.apartment} — ${form.guest_name}`;
+  payload.email_preview = `${items.length} item(s) • ${money(total)} • Arrival ${form.arrival_date || '-'}`;
+
+  return payload;
+}
+
+async function submitOrder(){
+  const ok  = document.getElementById('nl-ok');
+  const err = document.getElementById('nl-err');
+  ok.style.display='none'; err.style.display='none';
+
+  const data = buildPayload();
+  if (!data.guest_name || !data.email){
+    err.textContent = 'Please add your name and email.'; err.style.display='block'; return;
+  }
+  try{
+    const r = await fetch(WEBHOOK_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    ok.style.display='block';
+    // optional: clear cart
+    // CART.clear(); renderCart();
+  }catch(e){
+    err.textContent = 'Could not send your request. Please try again.'; err.style.display='block';
+    console.error(e);
+  }
+}
+
+document.getElementById('submit-order').addEventListener('click', submitOrder);
+
+/* INIT */
+renderProducts();
+renderCart();
 </script>
-{% endraw %}
