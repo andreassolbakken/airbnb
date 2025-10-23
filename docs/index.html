@@ -21,8 +21,10 @@
     color:var(--ink);
     background:linear-gradient(180deg,var(--blue1) 0%, var(--blue2) 22%, var(--blue3) 54%, #ffffff 100%);
   }
-  /* keep full page as a single canvas; no internal scroll panes */
-  .wrap{max-width:1100px;margin:14px auto;padding:0 10px; min-height:2000px;}
+
+  /* Single full-page canvas; no internal scroll panes */
+  .wrap{max-width:1100px;margin:14px auto;padding:0 10px; min-height:2700px;}
+
   .panel{
     background:var(--glass);
     border:1px solid var(--glass-bd);
@@ -66,23 +68,36 @@
   /* Products grid */
   .products{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   @media(max-width:900px){.products{grid-template-columns:repeat(2,1fr)}}
-  .p{background:#fff;border:1px solid #eee3cf;border-radius:12px;overflow:hidden;transition:.2s;display:flex;flex-direction:column;min-height:340px}
+  .p{background:#fff;border:1px solid #eee3cf;border-radius:12px;overflow:hidden;transition:.2s;display:flex;flex-direction:column;min-height:360px}
   .p:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.10)}
   .p.added{box-shadow:var(--ring-blue), 0 8px 20px rgba(0,0,0,.12)}
-  .imgWrap{width:100%;height:200px;background:#fff;display:flex;align-items:center;justify-content:center}
+  .imgWrap{width:100%;height:220px;background:#fff;display:flex;align-items:center;justify-content:center}
   .p img{max-width:100%;max-height:100%;object-fit:contain}
   .meta{padding:8px}
   .meta .name{font-weight:800;font-size:12.5px}
   .meta .desc{color:var(--muted);font-size:11.5px;margin-top:2px;min-height:24px}
-  .price-add{margin-top:auto;display:flex;align-items:center;justify-content:space-between;padding:8px;border-top:1px solid #f1eadc}
+
+  .price-add{
+    margin-top:auto;display:flex;align-items:center;justify-content:space-between;
+    padding:8px;border-top:1px solid #f1eadc;gap:8px
+  }
   .price{font-weight:900}
   .stepper{display:flex;align-items:center;gap:5px;flex-wrap:nowrap}
   .stepper button{width:26px;height:26px;border-radius:8px;border:1px solid #e6ddcc;background:#fff;font-weight:900;cursor:pointer}
   .stepper input{width:38px;text-align:center;padding:6px;border-radius:8px;border:1px solid #e6ddcc;background:#fff}
+
   .btn{padding:8px 11px;border-radius:10px;border:1px solid #e7e0d2;background:#fff;font-weight:800;cursor:pointer;white-space:nowrap}
   .btn.gold{background:linear-gradient(180deg,#fff3d4,#ebd09b);border-color:#e3d2ae}
   .btn.primary{background:linear-gradient(180deg,#7bb9ff,#5a8fcd);border-color:#5a8fcd;color:#fff;box-shadow:0 10px 22px rgba(90,143,205,.28)}
   .btn:hover{filter:brightness(1.05)} .btn:active{transform:translateY(1px)}
+
+  /* Mobile: make Add button full-width below stepper for visibility */
+  @media(max-width:600px){
+    .price-add{flex-direction:column;align-items:stretch}
+    .price{align-self:flex-start}
+    .stepper{order:1}
+    .price-add .btn[data-action="add-product"]{order:2;width:100%}
+  }
 
   /* Activities */
   .actgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -187,8 +202,8 @@
                       <button data-step="-1">−</button>
                       <input type="number" value="0" min="0">
                       <button data-step="1">+</button>
-                      <button class="btn gold" data-action="add-product">Add</button>
                     </div>
+                    <button class="btn gold" data-action="add-product">Add</button>
                   </div>
                 </div>
                 <!-- 2 Glass -->
@@ -201,8 +216,8 @@
                       <button data-step="-1">−</button>
                       <input type="number" value="0" min="0">
                       <button data-step="1">+</button>
-                      <button class="btn gold" data-action="add-product">Add</button>
                     </div>
+                    <button class="btn gold" data-action="add-product">Add</button>
                   </div>
                 </div>
                 <!-- 3 Talking Hearts -->
@@ -215,8 +230,8 @@
                       <button data-step="-1">−</button>
                       <input type="number" value="0" min="0">
                       <button data-step="1">+</button>
-                      <button class="btn gold" data-action="add-product">Add</button>
                     </div>
+                    <button class="btn gold" data-action="add-product">Add</button>
                   </div>
                 </div>
                 <!-- 4 Know Me 50 -->
@@ -229,8 +244,8 @@
                       <button data-step="-1">−</button>
                       <input type="number" value="0" min="0">
                       <button data-step="1">+</button>
-                      <button class="btn gold" data-action="add-product">Add</button>
                     </div>
+                    <button class="btn gold" data-action="add-product">Add</button>
                   </div>
                 </div>
                 <!-- 5 Questions for Humans -->
@@ -243,8 +258,8 @@
                       <button data-step="-1">−</button>
                       <input type="number" value="0" min="0">
                       <button data-step="1">+</button>
-                      <button class="btn gold" data-action="add-product">Add</button>
                     </div>
+                    <button class="btn gold" data-action="add-product">Add</button>
                   </div>
                 </div>
                 <!-- 6 Date Night -->
@@ -257,8 +272,8 @@
                       <button data-step="-1">−</button>
                       <input type="number" value="0" min="0">
                       <button data-step="1">+</button>
-                      <button class="btn gold" data-action="add-product">Add</button>
                     </div>
+                    <button class="btn gold" data-action="add-product">Add</button>
                   </div>
                 </div>
               </div>
@@ -382,7 +397,7 @@
       row.innerHTML = `
         <div class="l">
           <div style="font-weight:800">${i.name}</div>
-          ${i.estimate ? "<span class=\"est\">Request&nbsp;Quote</span>" : ""}
+          ${i.estimate ? "<span class=\\"est\\">Request&nbsp;Quote</span>" : ""}
           <div style="font-size:12px;color:#6f7681">x${i.qty}${i.unit_price? " · kr "+i.unit_price:""}</div>
         </div>
         <div style="font-weight:900">${i.estimate? "-": money(sub)}</div>`;
