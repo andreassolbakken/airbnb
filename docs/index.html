@@ -623,22 +623,29 @@ html,body{
 
   <script>
 (function(){
-  const BASE_HEIGHT = 3176;               // your designed canvas height
+  const BASE_HEIGHT = 3176;
   const wrap = document.querySelector('.wrap');
 
   function fitToViewport(){
     const isMobile = window.matchMedia('(max-width: 900px)').matches;
     if (!isMobile){
-      // Desktop: show at 100% (no scaling), keep your exact design
       wrap.style.transform = 'none';
+      wrap.style.width = '100%';
+      wrap.style.left = '0';
       return;
     }
-    // Mobile: scale the whole canvas to fit the visible screen height
-    const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+
+    const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
     const scale = Math.min(1, vh / BASE_HEIGHT);
+
+    // ✅ Stable scaling and centering on all browsers
     wrap.style.transform = `scale(${scale})`;
-wrap.style.transformOrigin = 'top center';
-wrap.style.width = `${100 / scale}%`;
+    wrap.style.transformOrigin = 'top center';
+    wrap.style.width = `${100 / scale}%`;
+    wrap.style.maxWidth = 'none';
+    wrap.style.position = 'relative';
+    wrap.style.left = `${(vw - (vw / scale)) / 2}px`;
   }
 
   window.addEventListener('load', fitToViewport);
