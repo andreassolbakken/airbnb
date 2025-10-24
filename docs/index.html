@@ -341,99 +341,159 @@
   </div>
 
 <script>
-const webhook = "https://services.leadconnectorhq.com/hooks/ZOaFJ8FLtFptFJMy2ZSH/webhook-trigger/f540af18-28fb-4fdc-82cc-1a3a114d4142";
-const cart = {};
-const cartEl = document.getElementById("cart");
-const totalEl = document.getElementById("total");
+  /* ------- Config ------- */
+  const webhookURL = "https://services.leadconnectorhq.com/hooks/ZOaFJ8FLtFptFJMy2ZSH/webhook-trigger/f540af18-28fb-4fdc-82cc-1a3a114d4142";
+  const money = n => "kr " + n;
 
-// --- Render Cart ---
-function renderCart() {
-  cartEl.innerHTML = "";
-  let total = 0;
-  Object.values(cart).forEach(item => {
-    const div = document.createElement("div");
-    div.className = "rowItem";
-    div.innerHTML = `<span>${item.name} x${item.qty}</span><b>${item.price > 0 ? "kr " + item.price * item.qty : ""}</b>`;
-    cartEl.appendChild(div);
-    total += item.price * item.qty;
-  });
-  totalEl.textContent = "kr " + total;
-}
+  /* ------- Cart state ------- */
+  const cart = new Map();
+  const cartItems = document.getElementById("cartItems");
+  const emptyNote = document.getElementById("emptyNote");
+  const grandEl = document.getElementById("grand");
 
-// --- Add-ons section ---
-document.querySelectorAll(".p").forEach(p => {
-  const name = p.dataset.name;
-  const price = parseInt(p.dataset.price);
-  const input = p.querySelector("input");
-  const addBtn = p.querySelector(".add");
-  const stepBtns = p.querySelectorAll("[data-step]");
-  
-  stepBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      let v = parseInt(input.value) || 0;
-      v = Math.max(0, v + parseInt(btn.dataset.step));
-      input.value = v;
+  function addLine({id,name,qty=1,unit_price=0,estimate=false}){
+    const it = cart.get(id) || {id,name,qty:0,unit_price,estimate};
+    it.qty += qty; it.name=name; it.unit_price=unit_price; it.estimate=estimate;
+    if(it.qty<=0) cart.delete(id); else cart.set(id,it);
+    renderCart();
+  }
+  function setLine({id,name,qty,unit_price=0,estimate=false}){
+    if(qty<=0){cart.delete(id); renderCart(); return;}
+    cart.set(id,{id,name,qty,unit_price,estimate}); renderCart();
+  }
+  function renderCart(){
+    cartItems.innerHTML=""; let total=0;
+    cart.forEach(i=>{
+      const sub = i.estimate ? 0 : i.qty*(i.unit_price||0);
+      total += sub;
+      const row = document.createElement("div"); row.className="rowItem";
+      row.innerHTML = `
+        <div class="l">
+          <div style="font-weight:800">${i.name}</div>
+          ${i.estimate ? "<span class=\\"est\\">Request&nbsp;Quote</span>" : ""}
+          <div style="font-size:12px;color:#6f7681">x${i.qty}${i.unit_price? " · kr "+i.unit_price:""}</div>
+        </div>
+        <div style="font-weight:900">${i.estimate? "-": money(sub)}</div>`;
+      cartItems.appendChild(row);
     });
+    grandEl.textContent = money(total);
+    emptyNote.style.display = cart.size ? "none":"block";
+  }
+
+  /* ------- Groceries chips ------- */
+  document.querySelectorAll(".chip").forEach(ch=>{
+    ch.classList.remove("active");
+    ch.addEventListener("click",()=>{
+      const id=ch.dataset.id, name=ch.dataset.name;
+      if(ch.classList.contains("active")){
+        setLine({id,name,qty:0,estimate:true});
+        ch.classList.remove("active");
+      }else{
+        setLine({id,name,qty:1,estimate:true});
+        ch.classList.add("active");
+      }
+    })
+  });
+  document.getElementById("addCustomGrocery").addEventListener("click",()=>{
+    const name=(document.getElementById("customGroceryName").value||"").trim();
+    if(!name) return;
+    addLine({id:"gro-custom-"+Date.now(),name:"Grocery: "+name,qty:1,estimate:true});
+    document.getElementById("customGroceryName").value="";
   });
 
-  addBtn.addEventListener("click", () => {
-    const qty = parseInt(input.value);
-    if (!qty) return;
-    if (!cart[name]) cart[name] = { name, qty: 0, price };
-    cart[name].qty += qty;
-    input.value = 0;
-    renderCart();
-  });
-});
-
-// --- Groceries chips ---
-document.querySelectorAll(".chip").forEach(chip => {
-  chip.addEventListener("click", () => {
-    const id = chip.dataset.id;
-    const name = chip.textContent.trim() + " (Request Quote)";
-    if (cart[id]) {
-      delete cart[id];
-      chip.classList.remove("active");
-    } else {
-      cart[id] = { name, qty: 1, price: 0 };
-      chip.classList.add("active");
+  /* ------- Add-ons (products) ------- */
+  document.getElementById("products").addEventListener("click",(e)=>{
+    const card = e.target.closest(".p"); if(!card) return;
+    const stepBtn = e.target.closest("[data-step]");
+    if(stepBtn){
+      const step = parseInt(stepBtn.getAttribute("data-step"),10);
+      const inp = card.querySelector("input[type=number]");
+      const v = Math.max(0, parseInt(inp.value||"0",10)+step);
+      inp.value = v; return;
     }
-    renderCart();
-  });
-});
-
-// --- Experiences ---
-document.querySelectorAll(".act").forEach(act => {
-  act.addEventListener("click", () => {
-    const name = act.dataset.name + " (Request Quote)";
-    if (cart[name]) {
-      delete cart[name];
-      act.style.boxShadow = "";
-    } else {
-      cart[name] = { name, qty: 1, price: 0 };
-      act.style.boxShadow = "0 0 0 5px rgba(94,155,231,.25)";
+    if(e.target.dataset.action==="add-product"){
+      const qty = Math.max(0, parseInt(card.querySelector("input[type=number]").value||"0",10));
+      if(qty===0) return;
+      addLine({ id:card.dataset.id, name:card.dataset.name, qty, unit_price:parseInt(card.dataset.price,10), estimate:false });
+      card.classList.add("added");
+      card.querySelector("input[type=number]").value = 0;
+      setTimeout(()=>card.classList.remove("added"),900);
     }
-    renderCart();
   });
-});
 
-// --- Confirm & Send ---
-document.getElementById("send").addEventListener("click", async () => {
-  const payload = {
-    name: document.getElementById("name").value,
-    email: document.getElementById("email").value,
-    items: Object.values(cart),
-  };
-  await fetch(webhook, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+  /* ------- Activities + Learn more ------- */
+  const learnModal=document.getElementById("learnModal");
+  function toggleLearn(open){ learnModal.classList.toggle("open", !!open); learnModal.setAttribute("aria-hidden", open? "false":"true"); }
+  window.toggleLearn=toggleLearn;
+
+  document.getElementById("activityGrid").addEventListener("click",(e)=>{
+    const addBtn=e.target.closest("[data-action=add-activity]");
+    if(addBtn){
+      const box=addBtn.closest(".act");
+      addLine({id:box.dataset.id+"-"+Date.now(),name:box.dataset.name,qty:1,estimate:true});
+      box.style.boxShadow="var(--ring)"; setTimeout(()=>box.style.boxShadow="",900);
+      return;
+    }
+    const learnBtn=e.target.closest("[data-learn]");
+    if(learnBtn){
+      const type=learnBtn.getAttribute("data-learn");
+      const title= type==="ira" ? "VIP Photo Shoot with Ira" : "Fishing with Simon";
+      const body= type==="ira"
+       ? `<p style="margin:0 0 8px;color:#6f7681">A private, cinematic photo session with <strong>Ira</strong> around Ålesund. Guidance, warm natural light and editorial framing.</p>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+            <img style="width:100%;height:120px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011302a7ea2ed2ffc83f.jpeg">
+            <img style="width:100%;height:120px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f901134ab728b08f9a0a93.jpeg">
+            <img style="width:100%;height:120px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f9011342c58c012d355c2b.jpeg">
+          </div>`
+       : `<p style="margin:0 0 8px;color:#6f7681">Head out with <strong>Simon</strong> for authentic fjord fishing. Explore coves, maybe spot seals, and take home prepared fish.</p>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+            <img style="width:100%;height:120px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2bad50b295805908f2.jpeg">
+            <img style="width:100%;height:120px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b691ecdb41b6d0430.jpeg">
+            <img style="width:100%;height:120px;object-fit:contain;background:#fff;border-radius:10px" src="https://storage.googleapis.com/msgsndr/ZOaFJ8FLtFptFJMy2ZSH/media/68f8ff2b5da419257a2f5a5c.jpeg">
+          </div>`;
+      document.getElementById("learnTitle").textContent=title;
+      document.getElementById("learnBody").innerHTML=body;
+      toggleLearn(true);
+    }
   });
-  document.getElementById("confirm").classList.add("show");
-  Object.keys(cart).forEach(k => delete cart[k]);
+
+  /* ------- Submit + glassy confirmation ------- */
+  function openConfirm(){ const c=document.getElementById("confirmOverlay"); c.classList.add("show"); c.setAttribute("aria-hidden","false"); }
+  function closeConfirm(){ const c=document.getElementById("confirmOverlay"); c.classList.remove("show"); c.setAttribute("aria-hidden","true"); }
+  window.closeConfirm = closeConfirm;
+
+  document.getElementById("confirmSend").addEventListener("click", async ()=>{
+    const payload = {
+      apartment: document.getElementById("room").value || "Nordic Loft Ålesund",
+      guest_name: document.getElementById("guestName").value,
+      email: document.getElementById("email").value,
+      phone: document.getElementById("phone").value,
+      arrival_date: document.getElementById("arrivalDate").value,
+      notes: document.getElementById("notes").value,
+      concierge: { shopping: document.getElementById("shoppingText").value, activities: document.getElementById("activityText").value },
+      items: Array.from(cart.values()).map(i=>({ id:i.id, name:i.name, qty:i.qty, unit_price:i.unit_price||0, subtotal:(i.unit_price||0)*i.qty, estimate:!!i.estimate })),
+      currency:"NOK",
+      total: Array.from(cart.values()).reduce((s,i)=> s + (i.estimate?0:(i.unit_price||0)*i.qty), 0),
+      created_at: new Date().toISOString()
+    };
+
+    try{
+      const res = await fetch(webhookURL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+      if(!res.ok) throw new Error("Network");
+      cart.clear(); renderCart();
+      document.querySelectorAll(".chip.active").forEach(c=>c.classList.remove("active"));
+      document.getElementById("shoppingText").value="";
+      document.getElementById("activityText").value="";
+      openConfirm();
+    }catch(e){
+      alert("Could not submit right now. Please try again later.");
+      console.error(e);
+    }
+  });
+
+  // initial render
+  function renderCart(){ /* already defined above, keep in place */ }
   renderCart();
-});
 </script>
-
 </body>
 </html>
