@@ -15,14 +15,14 @@
     --b1:#8db5e8; --b2:#9cc0ec; --b3:#e9f2ff;
   }
   *{box-sizing:border-box}
-  html,body{
-    margin:0; padding:0;
-    height:3200px;        /* hard lock total height */
-    overflow:hidden;      /* absolutely no scrolling */
-    font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-    color:var(--ink);
-    background:linear-gradient(180deg,var(--b1) 0%, var(--b2) 22%, var(--b3) 56%, #ffffff 100%);
-  }
+html,body{
+  margin:0; padding:0;
+  min-height:100vh;     /* allow page to grow naturally */
+  overflow:auto;        /* enable scrolling */
+  font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  color:var(--ink);
+  background:linear-gradient(180deg,var(--b1) 0%, var(--b2) 22%, var(--b3) 56%, #ffffff 100%);
+}
 
   /* canvas */
   .wrap{max-width:1100px;margin:12px auto;padding:0 10px;height:3176px;}
