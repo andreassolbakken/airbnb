@@ -341,99 +341,260 @@
   </div>
 
 <script>
-const webhook = "https://services.leadconnectorhq.com/hooks/ZOaFJ8FLtFptFJMy2ZSH/webhook-trigger/f540af18-28fb-4fdc-82cc-1a3a114d4142";
-const cart = {};
-const cartEl = document.getElementById("cart");
-const totalEl = document.getElementById("total");
+(() => {
+  // --- CONFIG
+  const WEBHOOK =
+    "https://services.leadconnectorhq.com/hooks/ZOaFJ8FLtFptFJMy2ZSH/webhook-trigger/f540af18-28fb-4fdc-82cc-1a3a114d4142";
 
-// --- Render Cart ---
-function renderCart() {
-  cartEl.innerHTML = "";
-  let total = 0;
-  Object.values(cart).forEach(item => {
-    const div = document.createElement("div");
-    div.className = "rowItem";
-    div.innerHTML = `<span>${item.name} x${item.qty}</span><b>${item.price > 0 ? "kr " + item.price * item.qty : ""}</b>`;
-    cartEl.appendChild(div);
-    total += item.price * item.qty;
-  });
-  totalEl.textContent = "kr " + total;
-}
+  // --- DOM (exact IDs in your HTML)
+  const els = {
+    cartList: document.getElementById("cartItems"),
+    emptyNote: document.getElementById("emptyNote"),
+    total: document.getElementById("grand"),
 
-// --- Add-ons section ---
-document.querySelectorAll(".p").forEach(p => {
-  const name = p.dataset.name;
-  const price = parseInt(p.dataset.price);
-  const input = p.querySelector("input");
-  const addBtn = p.querySelector(".add");
-  const stepBtns = p.querySelectorAll("[data-step]");
-  
-  stepBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      let v = parseInt(input.value) || 0;
-      v = Math.max(0, v + parseInt(btn.dataset.step));
-      input.value = v;
+    // forms
+    guestName: document.getElementById("guestName"),
+    email: document.getElementById("email"),
+    phone: document.getElementById("phone"),
+    arrival: document.getElementById("arrivalDate"),
+    room: document.getElementById("room"),
+    notes: document.getElementById("notes"),
+    shoppingText: document.getElementById("shoppingText"),
+    activityText: document.getElementById("activityText"),
+    sendBtn: document.getElementById("confirmSend"),
+
+    // sections
+    productCards: document.querySelectorAll(".p"),
+    groceryChips: document.querySelectorAll("#groceryChips .chip"),
+    activityAddBtns: document.querySelectorAll('[data-action="add-activity"]'),
+    learnBtns: document.querySelectorAll("[data-learn]"),
+
+    // overlays
+    learnModal: document.getElementById("learnModal"),
+    learnTitle: document.getElementById("learnTitle"),
+    learnBody: document.getElementById("learnBody"),
+    confirmOverlay: document.getElementById("confirmOverlay"),
+  };
+
+  // --- CART STATE
+  // cartKey -> { name, qty, price }
+  const cart = Object.create(null);
+
+  function formatKr(n) {
+    return "kr " + (n || 0);
+  }
+
+  function renderCart() {
+    els.cartList.innerHTML = "";
+    let total = 0;
+
+    const items = Object.values(cart);
+    if (items.length === 0) {
+      els.emptyNote.style.display = "";
+    } else {
+      els.emptyNote.style.display = "none";
+    }
+
+    items.forEach((it) => {
+      const row = document.createElement("div");
+      row.className = "rowItem";
+      row.innerHTML = `
+        <div class="l"><span>${it.name}</span><span>×${it.qty}</span>${
+        it.price > 0 ? "" : '<span class="est">Request&nbsp;Quote</span>'
+      }</div>
+        <div class="r"><b>${it.price > 0 ? formatKr(it.price * it.qty) : ""}</b></div>
+      `;
+      els.cartList.appendChild(row);
+      total += (it.price || 0) * it.qty;
+    });
+
+    els.total.textContent = formatKr(total);
+  }
+
+  function addItem(key, name, qty, price) {
+    if (!qty || qty < 1) return;
+    if (!cart[key]) cart[key] = { name, qty: 0, price: price || 0 };
+    cart[key].qty += qty;
+    renderCart();
+  }
+
+  function toggleRequest(key, name, activeEl, activeClass = "active") {
+    if (cart[key]) {
+      delete cart[key];
+      activeEl && activeEl.classList.remove(activeClass);
+    } else {
+      cart[key] = { name: name + " (Request Quote)", qty: 1, price: 0 };
+      activeEl && activeEl.classList.add(activeClass);
+    }
+    renderCart();
+  }
+
+  // --- PRODUCTS (cards with data-name / data-price)
+  els.productCards.forEach((card) => {
+    const key = card.dataset.id || card.dataset.name;
+    const name = card.dataset.name?.trim() || "Item";
+    const price = parseInt(card.dataset.price || "0", 10);
+
+    const qtyInput = card.querySelector('input[type="number"]');
+    const addBtn = card.querySelector('[data-action="add-product"]');
+
+    // stepper
+    card.querySelectorAll("[data-step]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const step = parseInt(btn.dataset.step || "0", 10);
+        let v = parseInt(qtyInput.value || "0", 10);
+        v = Math.max(0, v + step);
+        qtyInput.value = v;
+      });
+    });
+
+    // add
+    addBtn?.addEventListener("click", () => {
+      const qty = parseInt(qtyInput.value || "0", 10);
+      addItem(key, name, qty, price);
+      qtyInput.value = 0;
+      // subtle glow ring to confirm
+      card.classList.add("added");
+      setTimeout(() => card.classList.remove("added"), 600);
     });
   });
 
-  addBtn.addEventListener("click", () => {
-    const qty = parseInt(input.value);
-    if (!qty) return;
-    if (!cart[name]) cart[name] = { name, qty: 0, price };
-    cart[name].qty += qty;
-    input.value = 0;
-    renderCart();
+  // --- GROCERIES (chips)
+  els.groceryChips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const key = chip.dataset.id;
+      const label = chip.dataset.name || chip.textContent.trim();
+      toggleRequest(key, label, chip, "active");
+    });
   });
-});
 
-// --- Groceries chips ---
-document.querySelectorAll(".chip").forEach(chip => {
-  chip.addEventListener("click", () => {
-    const id = chip.dataset.id;
-    const name = chip.textContent.trim() + " (Request Quote)";
-    if (cart[id]) {
-      delete cart[id];
-      chip.classList.remove("active");
-    } else {
-      cart[id] = { name, qty: 1, price: 0 };
-      chip.classList.add("active");
-    }
-    renderCart();
+  // --- ACTIVITIES (Add buttons only)
+  els.activityAddBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const card = btn.closest(".act");
+      if (!card) return;
+      const key = card.dataset.id || card.dataset.name;
+      const name = card.dataset.name || "Experience";
+      // toggle like groceries (Request Quote)
+      if (cart[key]) {
+        delete cart[key];
+        card.style.boxShadow = "";
+      } else {
+        cart[key] = { name: name + " (Request Quote)", qty: 1, price: 0 };
+        card.style.boxShadow = "0 0 0 6px rgba(94,155,231,.25)";
+      }
+      renderCart();
+    });
   });
-});
 
-// --- Experiences ---
-document.querySelectorAll(".act").forEach(act => {
-  act.addEventListener("click", () => {
-    const name = act.dataset.name + " (Request Quote)";
-    if (cart[name]) {
-      delete cart[name];
-      act.style.boxShadow = "";
-    } else {
-      cart[name] = { name, qty: 1, price: 0 };
-      act.style.boxShadow = "0 0 0 5px rgba(94,155,231,.25)";
-    }
-    renderCart();
-  });
-});
-
-// --- Confirm & Send ---
-document.getElementById("send").addEventListener("click", async () => {
-  const payload = {
-    name: document.getElementById("name").value,
-    email: document.getElementById("email").value,
-    items: Object.values(cart),
+  // --- LEARN MORE (modal)
+  const learnCopy = {
+    ira: {
+      title: "VIP Photo Shoot with Ira",
+      body:
+        `<p>Private session with <b>Ira</b>, a talented Ukrainian photographer known for a warm, cinematic style.</p>
+         <ul>
+           <li>Flexible locations in Ålesund</li>
+           <li>Optional styling & guidance</li>
+           <li>Edited photos delivered after the shoot</li>
+         </ul>`,
+    },
+    simon: {
+      title: "Fishing with Simon (local fisher)",
+      body:
+        `<p>Head out with <b>Simon</b> for authentic fjord fishing. Spot seals, explore islands, get dropped at spectacular places, and take home prepared fish.</p>
+         <ul>
+           <li>Great for couples, families & small groups</li>
+           <li>Weather-safe scheduling</li>
+           <li>Custom routes by request</li>
+         </ul>`,
+    },
   };
-  await fetch(webhook, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-  document.getElementById("confirm").classList.add("show");
-  Object.keys(cart).forEach(k => delete cart[k]);
-  renderCart();
-});
-</script>
 
-</body>
-</html>
+  function toggleLearn(open, key) {
+    if (!open) {
+      els.learnModal.classList.remove("open");
+      return;
+    }
+    const data = learnCopy[key];
+    if (data) {
+      els.learnTitle.textContent = data.title;
+      els.learnBody.innerHTML = data.body;
+    } else {
+      els.learnTitle.textContent = "Experience";
+      els.learnBody.textContent = "";
+    }
+    els.learnModal.classList.add("open");
+  }
+  window.toggleLearn = toggleLearn; // keep global for Close button
+
+  els.learnBtns.forEach((b) =>
+    b.addEventListener("click", () => toggleLearn(true, b.dataset.learn))
+  );
+  els.learnModal.addEventListener("click", (e) => {
+    if (e.target === els.learnModal) toggleLearn(false);
+  });
+
+  // --- CONFIRM & SEND
+  function summaryText(items) {
+    return items
+      .map((i) => `• ${i.name} x${i.qty}${i.price ? ` — kr ${i.qty * i.price}` : ""}`)
+      .join("\n");
+  }
+
+  async function sendOrder() {
+    const items = Object.values(cart);
+    const payload = {
+      name: els.guestName?.value || "",
+      email: els.email?.value || "",
+      phone: els.phone?.value || "",
+      arrival_date: els.arrival?.value || "",
+      apartment: els.room?.value || "",
+      notes: els.notes?.value || "",
+      shopping_list_freeform: els.shoppingText?.value || "",
+      activity_notes: els.activityText?.value || "",
+      items,
+      total_kr: items.reduce((s, i) => s + (i.price || 0) * i.qty, 0),
+      email_summary:
+        `Order for Nordic Loft Ålesund\n\n` +
+        summaryText(items) +
+        `\n\nTotal: ${formatKr(
+          items.reduce((s, i) => s + (i.price || 0) * i.qty, 0)
+        )}\nArrival: ${els.arrival?.value || "-"}\nPhone: ${els.phone?.value || "-"}\nNotes: ${
+          els.notes?.value || "-"
+        }\nShopping notes: ${els.shoppingText?.value || "-"}\nActivity notes: ${
+          els.activityText?.value || "-"
+        }`,
+    };
+
+    try {
+      await fetch(WEBHOOK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      // Show confirmation
+      els.confirmOverlay.classList.add("show");
+      setTimeout(() => els.confirmOverlay.classList.remove("show"), 4000);
+
+      // Reset state
+      Object.keys(cart).forEach((k) => delete cart[k]);
+      document.querySelectorAll(".chip.active").forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll(".p input[type='number']").forEach((i) => (i.value = 0));
+      document.querySelectorAll(".act").forEach((a) => (a.style.boxShadow = ""));
+      renderCart();
+    } catch (e) {
+      console.error("Webhook error", e);
+      alert("Could not send right now. Please try again.");
+    }
+  }
+
+  els.sendBtn?.addEventListener("click", sendOrder);
+
+  // Close confirmation (button uses onclick="closeConfirm()")
+  window.closeConfirm = () => els.confirmOverlay.classList.remove("show");
+
+  // First paint
+  renderCart();
+})();
+</script>
