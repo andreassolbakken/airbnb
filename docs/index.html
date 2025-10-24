@@ -637,6 +637,8 @@ html,body{
     const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
     const scale = Math.min(1, vh / BASE_HEIGHT);
     wrap.style.transform = `scale(${scale})`;
+wrap.style.transformOrigin = 'top center';
+wrap.style.width = `${100 / scale}%`;
   }
 
   window.addEventListener('load', fitToViewport);
